@@ -3,7 +3,7 @@
 using JLD2
 
 # Parameters
-Ntrajectories = 1000
+Ntrajectories = 10000
 Tfinal = 20. # Final time
 dt = 0.1 # duration of infinitesimal time
 Gamma1 = 1. / 15   # Gamma fluoresence
