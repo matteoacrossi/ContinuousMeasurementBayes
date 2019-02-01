@@ -65,7 +65,7 @@ t = (1:Ntime)*dt;
 rho = Array{ComplexF64}(undef, 2,2,Nomega+1);
 
 probBayes = Array{Float64}(undef, Nomega+1, Ntime);    
-lklhood = Array{Float64}(undef, Nomega+1);
+lklhood = ones(Nomega + 1)/Nomega #Array{Float64}(undef, Nomega+1);
 
 probBayesTraj = Array{Float64}(undef, Nomega+1, Ntraj,Ntime);    
 lklhoodTraj = Array{Float64}(undef, Nomega+1);

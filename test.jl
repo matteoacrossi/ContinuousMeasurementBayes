@@ -1,9 +1,9 @@
 using JLD2
 
 # Parameters
-Ntrajectories = 10000
+Ntrajectories = 1000
 Tfinal = 20. # Final time
-dt = 0.1 # duration of infinitesimal time
+dt = 0.01 # duration of infinitesimal time
 Gamma1 = 1. / 15   # Gamma fluoresence
 GammaD = 1. / 0.3   # Gamma dephasing controllable
 GammaPhi = 1. / 17.9  # Gamma dephasing not controllable
@@ -11,7 +11,7 @@ etavalF = 0.14 # efficiency fluoresence heterodyne
 etavalD = 0.34 # efficiency dephasing homodyne
 omegaTrue = 2 * pi / 5. # True value of omega
 omegaMin= 0. # minimum value of omega
-omegaMax= 2. # maximum value of omega
+omegaMax= 3. # maximum value of omega
 Nomega = 200 # Resolution in omega for the Bayesian estimation
 
 @save "parameters.jld"
