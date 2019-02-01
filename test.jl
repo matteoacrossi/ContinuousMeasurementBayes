@@ -1,7 +1,6 @@
-include("fluo_cont_meas_sim.jl")
-include("likelihood_all.jl")
 
-using PyPlot
+
+using JLD2
 
 # Parameters
 Ntrajectories = 100
@@ -16,6 +15,11 @@ omegaTrue = 2 * pi / 5. # True value of omega
 omegaMin= 0. # minimum value of omega
 omegaMax= 3. # maximum value of omega
 Nomega = 200 # Resolution in omega for the Bayesian estimation
+
+@save "parameters.jld"
+
+include("fluo_cont_meas_sim.jl")
+include("likelihood_all.jl")
 
 @time (t, Ntime, dyHet1, dyHet2, dyDep, OutStrong, AvgZCondTrue) = parallel_fluo_continuous_measurement_het_simulation(Ntrajectories;
         Tfinal = Tfinal, # Final time
@@ -45,6 +49,8 @@ Nomega = 200 # Resolution in omega for the Bayesian estimation
 
 # Test if the average values of z coincide
 @assert isapprox(AvgZcond, AvgZCondTrue, rtol=dt^2,atol=dt^2)
+
+@save "data.jld" t Ntime dyHet1 dyHet2 dyDep OutStrong AvgZCondTrue omegay AvgZcond probBayes probBayesTraj omegaEst omegaMaxLik sigmaBayes
 
 using PyPlot
 figure()
