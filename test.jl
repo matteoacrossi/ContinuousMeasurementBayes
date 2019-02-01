@@ -1,9 +1,9 @@
 using JLD2
 
 # Parameters
-Ntrajectories = 1000
+Ntrajectories = 10
 Tfinal = 20. # Final time
-dt = 0.01 # duration of infinitesimal time
+dt = 0.1 # duration of infinitesimal time
 Gamma1 = 1. / 15   # Gamma fluoresence
 GammaD = 1. / 0.3   # Gamma dephasing controllable
 GammaPhi = 1. / 17.9  # Gamma dephasing not controllable
