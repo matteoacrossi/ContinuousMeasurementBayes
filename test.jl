@@ -50,23 +50,5 @@ include("likelihood_all.jl")
 # Test if the average values of z coincide
 @assert isapprox(AvgZcond, AvgZCondTrue, rtol=dt^2,atol=dt^2)
 
-@save "data.jld" t Ntime dyHet1 dyHet2 dyDep OutStrong AvgZCondTrue omegay AvgZcond probBayes probBayesTraj omegaEst omegaMaxLik sigmaBayes
-
-using PyPlot
-figure()
-plot(t, omegaEst, label="Bayes")
-plot(t, omegaEst + sqrt.(sigmaBayes), "C0--")
-plot(t, omegaEst - sqrt.(sigmaBayes), "C0--")
-plot(t, omegaMaxLik, label="Max-Lik")
-plot(t, fill(omegaTrue, size(t)), label="True")
-legend()
-savefig("bayes.pdf")
-close()
-
-figure()
-imshow(probBayes[end:-1:1,:], aspect="auto", extent=[0, Tfinal, omegaMin, omegaMax])
-plot(t, fill(omegaTrue,size(t)),"w--")
-xlabel("t")
-ylabel("ω");
-savefig("bayes2.pdf")
-close()
+@save "all_data.jld" t Ntime dyHet1 dyHet2 dyDep OutStrong AvgZCondTrue omegay AvgZcond probBayes probBayesTraj omegaEst omegaMaxLik sigmaBayes
+@save "data.jld" t Ntime omegay probBayes omegaEst omegaMaxLik sigmaBayes
