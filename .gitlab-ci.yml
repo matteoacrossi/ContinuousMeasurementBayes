@@ -25,7 +25,7 @@
     #  import MyPackage; cd(joinpath(dirname(pathof(MyPackage)), ".."));
     #  using Coverage; cl, tl = get_summary(process_folder());
     #  println("(", cl/tl*100, "%) covered")'
-    - julia --project=. test.jl
+    - julia -e 'using Pkg; Pkg.activate("."); PkgPkg.instantiate(); test.jl'
     
 # Name a test and select an appropriate image.
 # images comes from Docker hub
