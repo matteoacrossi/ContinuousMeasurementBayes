@@ -41,13 +41,13 @@ sp::Array{ComplexF64} = [0 1 ; 0 0]
 # Initial state: eigenvector of J_x with j = J
 psiPSZ::Array{ComplexF64} = [0 ; 1]
 
-sx2 = sx^2;
-sy2 = sy^2;
-sz2 = sz^2;
+sx2 = sx^2
+sy2 = sy^2
+sz2 = sz^2
 
-cF = sqrt(1. *Gamma1)*sm; 
-cD = sqrt(1. *GammaD/2)*sz;
-cPhi = sqrt(1. *GammaPhi/2)*sz;
+cF = sqrt(1. *Gamma1)*sm
+cD = sqrt(1. *GammaD/2)*sz
+cPhi = sqrt(1. *GammaPhi/2)*sz
 
 # omega is the parameter that we want to estimate
 # (we look at the case omega = 0)
@@ -57,7 +57,7 @@ RhoIn = psiPSZ * psiPSZ'
 
 # POVM operators for strong measurement
 phi=0.; #phase of the measurement
-Pi1=[cos(phi)^2 sin(phi)*cos(phi) ; sin(phi)*cos(phi) sin(phi)^2];  
+Pi1=[cos(phi)^2 sin(phi)*cos(phi) ; sin(phi)*cos(phi) sin(phi)^2]
 
 #
 t = (1:Ntime)*dt;
@@ -76,27 +76,29 @@ omegaMaxLik = Array{Float64}(undef, Ntime);
     
 AvgZcond = Array{Float64}(undef, Ntraj,Ntime)
  
-for ktraj = 1:Ntraj
+H = [(o/2.) * sy for o in omegay]; # Hamiltonian of the qubit
 
-    dy1= real(dyHet1[:,ktraj]);
-    dy2= real(dyHet2[:,ktraj]);
-    dy3= real(dyDep[:,ktraj]);        
+M0 = I - ((cF'*cF)/2 + (cD'*cD)/2 + (cPhi'*cPhi)/2) * dt
+rho0 = cat([RhoIn for i=1:Nomega+1]..., dims=3)
         
+dyHet1= real(dyHet1)
+dyHet2= real(dyHet2)
+dyDep= real(dyDep)
+
+
+for ktraj = 1:Ntraj
+    copy!(rho, rho0)
+    
     for jt=1:Ntime
 
-        M0 = I - ((cF'*cF)/2 + (cD'*cD)/2 + (cPhi'*cPhi)/2) * dt +
-            sqrt(etavalF/2) * (cF * dy1[jt] - 1im * cF * dy2[jt]) + sqrt(etavalD) * (cD * dy3[jt]);
+        M1 = M0 + sqrt(etavalF/2) * cF * (dyHet1[jt,ktraj] - 1im * dyHet2[jt,ktraj]) + sqrt(etavalD) * (cD * dyDep[jt,ktraj]);
             
         for jomega = 1:(Nomega+1)
         #in questo ciclo mi calcolo le likelihood della misura al tempo jt per ciascun valore di omega
             
-            H = (omegay[jomega]/2.) * sy; # Hamiltonian of the qubit
-                
-            if jt == 1
-                rho[:,:,jomega]= RhoIn;
-            end
+            #H = (omegay[jomega]/2.) * sy; # Hamiltonian of the qubit
 
-            M = M0 - 1im * H * dt
+            M = M1 - 1im * H[jomega] * dt
             rhotmp = view(rho, :,:,jomega)
 
             newRho = M * rhotmp * M' 

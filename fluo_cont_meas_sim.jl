@@ -24,7 +24,7 @@ function parallel_fluo_continuous_measurement_het_simulation(Ntraj;
 
   #dt = Tfinal / Ntime
   Ntime = trunc(Int,Tfinal/dt);  
-    
+
     sx = [0 1 ; 1. 0] .+ .0im;
     sy = [0 -1im ; 1im 0] .+ .0im;
     sz = [1 0 ; 0 -1] .+ .0im;
@@ -98,7 +98,7 @@ function parallel_fluo_continuous_measurement_het_simulation(Ntraj;
             
           dy3[jt] = sqrt(etavalD) * real(tr(rho*(cD+cD')))*dt + dWD;   
 
-          #  PRE-FEEDBACK (Conditioning)
+          # PRE-FEEDBACK (Conditioning)
           # Using Rouchon, Ralf Eq. (7)
           # Kraus operator
           M = I - (1im * H + (cF'*cF)/2 + (cD'*cD)/2 + (cPhi'*cPhi)/2) * dt +
