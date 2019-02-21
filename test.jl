@@ -14,7 +14,7 @@ omegaMin= 0. # minimum value of omega
 omegaMax= 3. # maximum value of omega
 Nomega = 200 # Resolution in omega for the Bayesian estimation
 
-@save "parameters.jld"
+#@save "parameters.jld"
 
 include("fluo_cont_meas_sim.jl")
 include("likelihood_all.jl")
@@ -45,8 +45,8 @@ include("likelihood_all.jl")
     dyDep = dyDep,  #output current 3 homodyne (sigmaz)
     OutS = OutStrong ); # output strong final measurement
 
-@save "all_data.jld" t Ntime dyHet1 dyHet2 dyDep OutStrong AvgZCondTrue omegay AvgZcond probBayes probBayesTraj omegaEst omegaMaxLik sigmaBayes
-@save "data.jld" t Ntime omegay probBayes omegaEst omegaMaxLik sigmaBayes
+#@save "all_data.jld" t Ntime dyHet1 dyHet2 dyDep OutStrong AvgZCondTrue omegay AvgZcond probBayes probBayesTraj omegaEst omegaMaxLik sigmaBayes
+#@save "data.jld" t Ntime omegay probBayes omegaEst omegaMaxLik sigmaBayes
 
 # Test if the average values of z coincide
 @assert isapprox(AvgZcond, AvgZCondTrue, rtol=dt^2,atol=dt^2)
