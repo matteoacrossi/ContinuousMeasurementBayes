@@ -2,18 +2,18 @@ using LinearAlgebra
 using StaticArrays
 
 PriorGaussian(omega, omegaMean, Sigma) = exp.( - ((omega .- omegaMean).^2)/(2*Sigma^2))
-                       
-function Likelihood(dyHet1, dyHet2, dyDep, Ntime;
-    Tfinal = 20., # Final time
-    Gamma1 = 1. / 15 ,   # Gamma fluoresence
-    GammaD = 1. / (0.3),    # Gamma dephasing controllable
-    GammaPhi = 1. / (17.9),  # Gamma dephasing not controllable
-    etavalF=0.14, #efficiency fluoresence heterodyne
-    etavalD=0.34, #efficiency dephasing homodyne
-    omegaMin = 0, #minimum value of omega
-    omegaMax=1. *pi, #maximum value of omega
-    Nomega = 500, # number of values of omega
-    omegaTrue = 2. *pi/5., threshold = 0.375, kwargs...)  #true value of omega
+
+function Likelihood_strong(dyHet1, dyHet2, dyDep, OutZ, Ntime;
+    Tfinal = nothing, # Final time
+    Gamma1 = nothing,   # Gamma fluoresence
+    GammaD = nothing,    # Gamma dephasing controllable
+    GammaPhi =nothing,  # Gamma dephasing not controllable
+    etavalF=nothing, #efficiency fluoresence heterodyne
+    etavalD=nothing, #efficiency dephasing homodyne
+    omegaMin = nothing, #minimum value of omega
+    omegaMax=nothing, #maximum value of omega
+    Nomega = nothing, # number of values of omega
+    omegaTrue = nothing, threshold = nothing, kwargs...)  #true value of omega
 
 #@assert size(dyHet1) == size(dyHet2) == size(dyDep), "Current sizes don't match"
 
@@ -50,6 +50,10 @@ cF = SMatrix{2,2}(sqrt(1. *Gamma1)*sm)
 cD = SMatrix{2,2}(sqrt(1. *GammaD/2)*sz)
 cPhi = SMatrix{2,2}(sqrt(1. *GammaPhi/2)*sz)
 
+# omega is the parameter that we want to estimate
+
+PiPlus=SMatrix{2,2}([1 0 ; 0 0] .+ 0.0im)
+
 # initial state of the system
 RhoIn::Array{ComplexF64} = [0.04 0 ; 0 0.96];
 
@@ -65,12 +69,19 @@ rho = Array{ComplexF64}(undef, 2,2,Nomega+1);
 probBayes = Array{Float64}(undef, Nomega+1, Ntime);    
 lklhood = ones(Nomega + 1)/Nomega #Array{Float64}(undef, Nomega+1);
 
+probStrong = Array{Float64}(undef, Nomega+1 );    
+lklhoodStrong = ones(Nomega + 1)/Nomega #Array{Float64}(undef, Nomega+1);
+
 probBayesTraj = Array{Float64}(undef, Nomega+1, Ntraj,Ntime);    
 lklhoodTraj = Array{Float64}(undef, Nomega+1);
 
 omegaEst = Array{Float64}(undef, Ntime);
 sigmaBayes = Array{Float64}(undef, Ntime);
 omegaMaxLik = Array{Float64}(undef, Ntime);
+
+omegaEstStrong = Array{Float64}(undef, Ntraj);
+sigmaStrong = Array{Float64}(undef, Ntraj);
+omegaMaxLikStrong = Array{Float64}(undef, Ntraj);
                                 
 AvgZcond = Array{Float64}(undef, Ntraj,Ntime)
  
@@ -87,7 +98,7 @@ for ktraj = 1:Ntraj
         if jt <= 3
             M1 = M0;
         else
-                    M1 = M0 + sqrt(etavalF/2) * cF * (dyHet1[end-197+jt-3,ktraj] - 1im * dyHet2[end-197+jt-3,ktraj]) + sqrt(etavalD) * (cD * dyDep[end-197+jt-3,ktraj]);
+            M1 = M0 + sqrt(etavalF/2) * cF * (dyHet1[end-197+jt-3,ktraj] - 1im * dyHet2[end-197+jt-3,ktraj]) + sqrt(etavalD) * (cD * dyDep[end-197+jt-3,ktraj]);
         end
             
         for jomega = 1:(Nomega+1)
@@ -116,6 +127,16 @@ for ktraj = 1:Ntraj
             if abs(omegay[jomega]-omegaTrue) < domega    
                 AvgZcond[ktraj,jt] = real(tr(rho[:,:,jomega]*sz));
             end
+
+            if jt == Ntime
+                pPlus = real(tr(rho[:,:,jomega]*PiPlus)); 
+                    
+                if OutZ[ktraj] >= threshold
+                    lklhoodStrong[jomega] = pPlus;
+                else
+                    lklhoodStrong[jomega] = (1 - pPlus);
+                end
+            end
         end  # fine ciclo su omega
         
         if jt == 1
@@ -139,7 +160,25 @@ for ktraj = 1:Ntraj
                 # e per probabilità a quel tempo considerate tutte le traiettorie 
             end
         end
-                                    
+        
+                                                            
+        if jt == Ntime
+            if ktraj == 1
+                lklhoodStrong = lklhoodStrong .* probBayesTraj[:,ktraj,Ntime]; 
+            else
+                lklhoodStrong = lklhoodStrong .* probBayesTraj[:,ktraj,Ntime] .* probStrong[:];
+            end
+            normStrong = sum(lklhoodStrong);
+            probStrong[:] = lklhoodStrong/normStrong;
+                
+            omegaEstStrong[ktraj] = sum(probStrong[:].*omegay);
+            sigmaStrong[ktraj] = sqrt(sum(probStrong[:].*(omegay.^2)) - omegaEstStrong[ktraj]^2);
+                    
+            indMStrong = argmax(probStrong[:]);   
+            omegaMaxLikStrong[ktraj] = omegay[indMStrong];
+        end
+        
+
         norm = sum(lklhood);
         normTraj = sum(lklhoodTraj);
             
@@ -149,7 +188,7 @@ for ktraj = 1:Ntraj
         
         if ktraj == Ntraj        
             omegaEst[jt] = sum(probBayes[:,jt].*omegay);
-            sigmaBayes[jt] = sqrt(sum(probBayes[:,jt].*(omegay.^2)) - omegaEst[jt]^2);
+            sigmaBayes[jt] = sqrt(zchop(sum(probBayes[:,jt].*(omegay.^2)) - omegaEst[jt]^2));
                 
             indM = argmax(probBayes[:,jt]);   
             omegaMaxLik[jt]=omegay[indM];
@@ -160,5 +199,6 @@ for ktraj = 1:Ntraj
 end # fine ciclo su traiettorie
 
 return (t=t, omegas=omegay, AvgZcond=AvgZcond, probBayes=probBayes, probBayesTraj=probBayesTraj, 
-        omegaEst=omegaEst, omegaMaxLik=omegaMaxLik, sigmaBayes=sigmaBayes)
+        omegaEst=omegaEst, omegaMaxLik=omegaMaxLik, sigmaBayes=sigmaBayes, omegaEstStrong=omegaEstStrong, 
+        omegaMaxLikStrong=omegaMaxLikStrong, sigmaStrong=sigmaStrong)
 end

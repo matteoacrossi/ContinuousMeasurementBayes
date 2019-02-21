@@ -1,6 +1,7 @@
 using Distributed
 using SharedArrays
 using LinearAlgebra
+using StaticArrays
 
 """
 This function simulates the dynamics of the superconducting qubit in Ficheux et al. for Ntraj trajectories
@@ -17,7 +18,7 @@ function parallel_fluo_continuous_measurement_het_simulation(Ntraj;
         etavalF=0.14, #efficiency fluoresence heterodyne
         etavalD=0.34, #efficiency dephasing homodyne
         phi = 0., #phase of strong measurement
-        omegay = 2*pi/(5.)) # omegaz
+        omegaTrue = 2*pi/(5.), args...) # omegaz
 
   jtot = 1 / 2; #Total spin
   dimJ = 2; # Dimension of the corresponding Hilbert space
@@ -40,17 +41,17 @@ function parallel_fluo_continuous_measurement_het_simulation(Ntraj;
   sy2 = sy^2;
   sz2 = sz^2;
     
-  cF = sqrt(1. * Gamma1)*sm; 
-  cD = sqrt(1. * GammaD/2)*sz;
-  cPhi = sqrt(1. * GammaPhi/2)*sz;
+  cF   = SMatrix{2,2}(sqrt(1. * Gamma1)*sm); 
+  cD   = SMatrix{2,2}(sqrt(1. * GammaD/2)*sz);
+  cPhi = SMatrix{2,2}(sqrt(1. * GammaPhi/2)*sz);
     
   # omega is the parameter that we want to estimate
   # (we look at the case omega = 0)
 
-  H = (omegay/2.) * sy; # Hamiltonian of the spin system
-  dH = sy/2.; # Derivative of H wrt the parameter omegay
+  H = SMatrix{2,2}((omegaTrue/2.) * sy); # Hamiltonian of the spin system
+  dH = SMatrix{2,2}(sy/2.); # Derivative of H wrt the parameter omegaTrue
 
-  RhoIn = psiPSZ * psiPSZ'
+  RhoIn = SMatrix{2,2}([0.04 0 ; 0 0.96] .+ 0.0im)
     
   # POVM operators for strong measurement
   phi=0.; #phase of the measurement
@@ -67,7 +68,9 @@ function parallel_fluo_continuous_measurement_het_simulation(Ntraj;
   OutStrong = SharedArray{Float64}((Ntraj,Ntime))
     
   AvgZcondTrue = SharedArray{Float64}((Ntraj,Ntime))
-    
+
+  # Trajectory-independent part of the Kraus operator
+  M0 = I - (1im * H + (cF'*cF)/2 + (cD'*cD)/2 + (cPhi'*cPhi)/2) * dt
   @sync @distributed for ktraj = 1:Ntraj
       rho = RhoIn;
 
@@ -84,25 +87,26 @@ function parallel_fluo_continuous_measurement_het_simulation(Ntraj;
       dy3 = zero(t);
       outS = zero(t);  
       #
-        
+      
       for jt=1:Ntime
           dWF1 = WienerIncrementsF1[jt];      # Wiener increment
           dWF2 = WienerIncrementsF2[jt];      # Wiener increment
-
           dWD = WienerIncrementsD[jt];      # Wiener increment
-            
-          # We initialize dy1 and dy2 
-          # Signal variation (Rouchon, Sec. 4.1)
-          dy1[jt] = sqrt(etavalF/2) * real(tr(rho*(cF+cF')))*dt + dWF1;
-          dy2[jt] = sqrt(etavalF/2) * real(tr(rho*(-1im*(cF-cF'))))*dt + dWF2;
-            
-          dy3[jt] = sqrt(etavalD) * real(tr(rho*(cD+cD')))*dt + dWD;   
+          
 
           # PRE-FEEDBACK (Conditioning)
           # Using Rouchon, Ralf Eq. (7)
           # Kraus operator
-          M = I - (1im * H + (cF'*cF)/2 + (cD'*cD)/2 + (cPhi'*cPhi)/2) * dt +
-              sqrt(etavalF/2) * (cF * dy1[jt] - 1im * cF * dy2[jt]) + sqrt(etavalD) * (cD * dy3[jt]);
+          M = M0
+          
+          # First three timesteps are unconditional
+          if jt > 3 
+              # Signal variation (Rouchon, Sec. 4.1)
+              dy1[jt] = sqrt(etavalF/2) * real(tr(rho*(cF+cF')))*dt + dWF1;
+              dy2[jt] = sqrt(etavalF/2) * real(tr(rho*(-1im*(cF-cF'))))*dt + dWF2;
+              dy3[jt] = sqrt(etavalD) * real(tr(rho*(cD+cD')))*dt + dWD;   
+              M = M0 + sqrt(etavalF/2) * (cF * dy1[jt] - 1im * cF * dy2[jt]) + sqrt(etavalD) * (cD * dy3[jt]);
+            end
             
           newRho = M * rho * M' + (1 - etavalF) * dt * (cF * rho * cF') + (1 - etavalD) * dt * (cD * rho * cD') + dt * (cPhi * rho * cPhi');
           tr1 = tr(newRho);
@@ -129,5 +133,5 @@ function parallel_fluo_continuous_measurement_het_simulation(Ntraj;
       OutStrong[ktraj,:]=outS;  
   end
 
-  return (t, Ntime, dyHet1', dyHet2', dyDep', OutStrong', AvgZcondTrue)
+  return (t=t, Ntime=Ntime, dyHet1=dyHet1', dyHet2=dyHet2', dyDep=dyDep', OutStrong=OutStrong', AvgZcondTrue=AvgZcondTrue)
 end
