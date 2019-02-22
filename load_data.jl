@@ -105,7 +105,3 @@ function sample_data_chunk(Ntraj)
     dyDep  = file["w"][:,idx:idx+Ntraj-1]
     return (dyHet1, dyHet2, dyDep)
 end
-
-function rescale_experimental_data(x, factor=10^(-3/2))
-    x .* factor
-end
