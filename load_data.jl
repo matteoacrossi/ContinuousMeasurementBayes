@@ -36,3 +36,76 @@ end
 function rescale_experimental_data(x, factor=10^(-3/2))
     x .* factor
 end
+
+
+### OLDER functions
+# The data is organized so that 10k trajectories are measured along x, then 10k along y, then 10k along z and so on
+CHUNK_SIZE = 10000
+
+"""
+Gets a sample of trajectories by chosing randomly (slow)
+"""
+function sample_data(Ntraj, file)
+    zidx = sample(1:size(file["z"],1), Ntraj; replace=false, ordered=true)
+    idx = 2 * CHUNK_SIZE + floor(zidx / CHUNK_SIZE) * 3 * CHUNK_SIZE
+    dyHet1 = hcat([file["u"][:,i] for i in idx])
+    dyHet2 = hcat([file["v"][:,i] for i in idx])
+    dyDep  = hcat([file["w"][:,i] for i in idx])
+    return (dyHet1, dyHet2, dyDep)
+end
+
+"""
+Gets a sample chunk of trajectories starting from a random index (slow)
+"""
+function sample_data_chunk(Ntraj, file)
+    u_data = file["u"] 
+    v_data = file["v"]
+    w_data = file["w"]
+    z_data = file["z"]
+    zidx = rand(1:(size(z_data,1)-Ntraj))
+    idx = 2 * CHUNK_SIZE + Int(floor(zidx / CHUNK_SIZE)) * 3 * CHUNK_SIZE + 1
+    dyHet1 = u_data[:,idx:idx+Ntraj-1]
+    dyHet2 = v_data[:,idx:idx+Ntraj-1]
+    dyDep  = w_data[:,idx:idx+Ntraj-1]
+    OutZ   = z_data[zidx:zidx+Ntraj-1, 1]
+    return (dyHet1, dyHet2, dyDep, OutZ)
+end
+
+function get_data_chunk(zidx, Ntraj, file)
+    u_data = file["u"] 
+    v_data = file["v"]
+    w_data = file["w"]
+    z_data = file["z"]
+    idx = 2 * CHUNK_SIZE + Int(floor(zidx / CHUNK_SIZE)) * 3 * CHUNK_SIZE + 1
+    dyHet1 = u_data[:,idx:idx+Ntraj-1]
+    dyHet2 = v_data[:,idx:idx+Ntraj-1]
+    dyDep  = w_data[:,idx:idx+Ntraj-1]
+    OutZ   = z_data[zidx:zidx+Ntraj-1, 1]
+    return (dyHet1, dyHet2, dyDep, OutZ)
+end
+
+"""
+Gets a sample of trajectories by chosing randomly (slow)
+"""
+function sample_data(Ntraj)
+    idx = sample(1:size(file["u"],2), Ntraj; replace=false, ordered=true)
+    dyHet1 = hcat([file["u"][:,i] for i in idx])
+    dyHet2 = hcat([file["v"][:,i] for i in idx])
+    dyDep  = hcat([file["w"][:,i] for i in idx])
+    return (dyHet1, dyHet2, dyDep)
+end
+
+"""
+Gets a sample chunk of trajectories starting from a random index (slow)
+"""
+function sample_data_chunk(Ntraj)
+    idx = rand(1:(size(file["u"],2)-Ntraj))
+    dyHet1 = file["u"][:,idx:idx+Ntraj-1]
+    dyHet2 = file["v"][:,idx:idx+Ntraj-1]
+    dyDep  = file["w"][:,idx:idx+Ntraj-1]
+    return (dyHet1, dyHet2, dyDep)
+end
+
+function rescale_experimental_data(x, factor=10^(-3/2))
+    x .* factor
+end
