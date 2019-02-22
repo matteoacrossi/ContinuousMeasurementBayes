@@ -22,7 +22,6 @@ dimJ = 2; # Dimension of the corresponding Hilbert space
 dt = Tfinal / Ntime;
     
 Ntraj = size(dyHet1,2)
-println("N trajectories: ", Ntraj)
     
 domega = (omegaMax - omegaMin) / Nomega;
 
@@ -92,7 +91,6 @@ rho0 = cat([RhoIn for i=1:Nomega+1]..., dims=3)
 
 for ktraj = 1:Ntraj
     copy!(rho, rho0)
-    
     for jt=1:Ntime
 
         if jt <= 3
@@ -129,8 +127,7 @@ for ktraj = 1:Ntraj
             end
 
             if jt == Ntime
-                pPlus = real(tr(rho[:,:,jomega]*PiPlus)); 
-                    
+                pPlus = real(tr(rho[:,:,jomega]*PiPlus));
                 if OutZ[ktraj] >= threshold
                     lklhoodStrong[jomega] = pPlus;
                 else
@@ -161,6 +158,13 @@ for ktraj = 1:Ntraj
             end
         end
         
+
+        norm = sum(lklhood);
+        normTraj = sum(lklhoodTraj);
+            
+        probBayes[:,jt] = lklhood/norm;   # probabilità Bayesiana considerando tutte le traiettorie
+        probBayesTraj[:,ktraj,jt]=lklhoodTraj /normTraj;  #probabilità Bayesiana singola traiettoria
+        
                                                             
         if jt == Ntime
             if ktraj == 1
@@ -170,20 +174,13 @@ for ktraj = 1:Ntraj
             end
             normStrong = sum(lklhoodStrong);
             probStrong[:] = lklhoodStrong/normStrong;
-                
+            
             omegaEstStrong[ktraj] = sum(probStrong[:].*omegay);
             sigmaStrong[ktraj] = sqrt(sum(probStrong[:].*(omegay.^2)) - omegaEstStrong[ktraj]^2);
                     
             indMStrong = argmax(probStrong[:]);   
             omegaMaxLikStrong[ktraj] = omegay[indMStrong];
         end
-        
-
-        norm = sum(lklhood);
-        normTraj = sum(lklhoodTraj);
-            
-        probBayes[:,jt] = lklhood/norm;   # probabilità Bayesiana considerando tutte le traiettorie
-        probBayesTraj[:,ktraj,jt]=lklhoodTraj /normTraj;  #probabilità Bayesiana singola traiettoria
         
         
         if ktraj == Ntraj        
