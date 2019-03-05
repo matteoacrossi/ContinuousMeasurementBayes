@@ -7,26 +7,42 @@ function Likelihood_strong(dyHet1, dyHet2, dyDep, OutZ, Ntime;
     Tfinal = nothing, # Final time
     Gamma1 = nothing,   # Gamma fluoresence
     GammaD = nothing,    # Gamma dephasing controllable
-    GammaPhi =nothing,  # Gamma dephasing not controllable
-    etavalF=nothing, #efficiency fluoresence heterodyne
-    etavalD=nothing, #efficiency dephasing homodyne
+    GammaPhi = nothing,  # Gamma dephasing not controllable
+    etavalF = nothing, #efficiency fluoresence heterodyne
+    etavalD = nothing, #efficiency dephasing homodyne
     omegaMin = nothing, #minimum value of omega
-    omegaMax=nothing, #maximum value of omega
+    omegaMax = nothing, #maximum value of omega
     Nomega = nothing, # number of values of omega
-    omegaTrue = nothing, threshold = nothing, kwargs...)  #true value of omega
+    omegaTrue = nothing, threshold = nothing, 
+    internalsteps = 10,
+    kwargs...)  #true value of omega
 
 #@assert size(dyHet1) == size(dyHet2) == size(dyDep), "Current sizes don't match"
 
-dimJ = 2; # Dimension of the corresponding Hilbert space
+dimJ = 2 # Dimension of the corresponding Hilbert space
 
-dt = Tfinal / Ntime;
-    
+unconditional_timesteps = 3
+
+# We take into account the internal timesteps
+Ntime *= internalsteps
+dt = Tfinal / Ntime
+unconditional_timesteps *= internalsteps
+
+# We devide the currents by the number of internal timesteps and
+# repeat each element for that number
+dyHet1 ./= internalsteps
+dyHet1 = repeat(dyHet1,inner=[internalsteps,1])
+dyHet2 ./= internalsteps
+dyHet2 = repeat(dyHet2,inner=[internalsteps,1])
+dyDep ./= internalsteps
+dyDep = repeat(dyDep,inner=[internalsteps,1])
+
 Ntraj = size(dyHet1,2)
     
-domega = (omegaMax - omegaMin) / Nomega;
+domega = (omegaMax - omegaMin) / Nomega
 
-omegay = Array{Float64}(undef, Nomega+1);  
-priorG = Array{Float64}(undef, Nomega+1); 
+omegay = Array{Float64}(undef, Nomega+1)
+priorG = Array{Float64}(undef, Nomega+1)
 
 for jomega=1:(Nomega+1)
     omegay[jomega] = real(omegaMin + (jomega-1)*domega);
@@ -50,7 +66,6 @@ cD = SMatrix{2,2}(sqrt(1. *GammaD/2)*sz)
 cPhi = SMatrix{2,2}(sqrt(1. *GammaPhi/2)*sz)
 
 # omega is the parameter that we want to estimate
-
 PiPlus=SMatrix{2,2}([1 0 ; 0 0] .+ 0.0im)
 
 # initial state of the system
@@ -61,7 +76,7 @@ phi=0.; #phase of the measurement
 Pi1=[cos(phi)^2 sin(phi)*cos(phi) ; sin(phi)*cos(phi) sin(phi)^2]
 
 #
-t = (1:Ntime)*dt;
+t = (1:Ntime)*dt
 
 rho = Array{ComplexF64}(undef, 2,2,Nomega+1);
 
@@ -71,7 +86,7 @@ lklhood = ones(Nomega + 1)/Nomega #Array{Float64}(undef, Nomega+1);
 probStrong = Array{Float64}(undef, Nomega+1 );    
 lklhoodStrong = ones(Nomega + 1)/Nomega #Array{Float64}(undef, Nomega+1);
 
-probBayesTraj = Array{Float64}(undef, Nomega+1, Ntraj,Ntime);    
+probBayesTraj = Array{Float64}(undef, Nomega+1, Ntraj, Ntime);    
 lklhoodTraj = Array{Float64}(undef, Nomega+1);
 
 omegaEst = Array{Float64}(undef, Ntime);
@@ -93,7 +108,7 @@ for ktraj = 1:Ntraj
     copy!(rho, rho0)
     for jt=1:Ntime
 
-        if jt <= 3
+        if jt <= unconditional_timesteps
             M1 = M0;
         else
             M1 = M0 + sqrt(etavalF/2) * cF * (dyHet1[end - Ntime + jt, ktraj] - 1im * dyHet2[end - Ntime + jt, ktraj]) + 
