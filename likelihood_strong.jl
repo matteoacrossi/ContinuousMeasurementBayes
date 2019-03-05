@@ -96,7 +96,8 @@ for ktraj = 1:Ntraj
         if jt <= 3
             M1 = M0;
         else
-            M1 = M0 + sqrt(etavalF/2) * cF * (dyHet1[end-197+jt-3,ktraj] - 1im * dyHet2[end-197+jt-3,ktraj]) + sqrt(etavalD) * (cD * dyDep[end-197+jt-3,ktraj]);
+            M1 = M0 + sqrt(etavalF/2) * cF * (dyHet1[end - Ntime + jt, ktraj] - 1im * dyHet2[end - Ntime + jt, ktraj]) + 
+                    sqrt(etavalD) * (cD * dyDep[end - Ntime + jt, ktraj])
         end
             
         for jomega = 1:(Nomega+1)
