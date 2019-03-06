@@ -1,5 +1,21 @@
 using LinearAlgebra
 using StaticArrays
+using Interpolations
+
+function interpolate_current(dy::AbstractArray{T, 1}, internalsteps) where T
+    l = length(dy)
+    intp = LinearInterpolation(1:l, dy, extrapolation_bc=Flat())
+    return intp((1 : (l * internalsteps)) / Float64(internalsteps))
+end
+
+function interpolate_current(dy::AbstractArray{T, 2}, internalsteps) where T
+    (n, m) = size(dy)
+    result = Array{T}(undef, n * internalsteps, m)
+    for i = 1:m
+        result[:,i] = interpolate_current(dy[:,i], internalsteps)
+    end
+    return result
+end
 
 PriorGaussian(omega, omegaMean, Sigma) = exp.( - ((omega .- omegaMean).^2)/(2*Sigma^2))
 
@@ -14,7 +30,7 @@ function Likelihood_strong(dyHet1, dyHet2, dyDep, OutZ, Ntime;
     omegaMax = nothing, #maximum value of omega
     Nomega = nothing, # number of values of omega
     omegaTrue = nothing, threshold = nothing, 
-    internalsteps = 10,
+    internalsteps = 1,
     kwargs...)  #true value of omega
 
 #@assert size(dyHet1) == size(dyHet2) == size(dyDep), "Current sizes don't match"
@@ -28,15 +44,16 @@ Ntime *= internalsteps
 dt = Tfinal / Ntime
 unconditional_timesteps *= internalsteps
 
-# We devide the currents by the number of internal timesteps and
-# repeat each element for that number
-dyHet1 ./= internalsteps
-dyHet1 = repeat(dyHet1,inner=[internalsteps,1])
-dyHet2 ./= internalsteps
-dyHet2 = repeat(dyHet2,inner=[internalsteps,1])
-dyDep ./= internalsteps
-dyDep = repeat(dyDep,inner=[internalsteps,1])
-
+if internalsteps > 1
+    # We devide the currents by the number of internal timesteps and
+    # repeat each element for that number
+    dyHet1 ./= internalsteps
+    dyHet1 = interpolate_current(dyHet1, internalsteps)
+    dyHet2 ./= internalsteps
+    dyHet2 = interpolate_current(dyHet2, internalsteps)
+    dyDep ./= internalsteps
+    dyDep = interpolate_current(dyDep, internalsteps)
+end
 Ntraj = size(dyHet1,2)
     
 domega = (omegaMax - omegaMin) / Nomega
@@ -130,13 +147,14 @@ for ktraj = 1:Ntraj
                 newRho += dt * (cPhi * rhotmp * cPhi');
             else        
                 newRho += (1 - etavalF) * dt * (cF * rhotmp * cF') +  (1 - etavalD) * dt * (cD * rhotmp * cD') +  dt * (cPhi * rhotmp * cPhi');
-            end
+            end 
             
             lklhood[jomega] = real(tr(newRho));
                 
             rho[:,:,jomega] = newRho / lklhood[jomega];
 
-            lklhood[jomega] = lklhood[jomega] - (omegay[jomega] * dt / 2)^2;
+            # Correction factor
+            lklhood[jomega] = lklhood[jomega] - (omegay[jomega] * dt / 2)^2
                             
             if abs(omegay[jomega]-omegaTrue) < domega    
                 AvgZcond[ktraj,jt] = real(tr(rho[:,:,jomega]*sz));
