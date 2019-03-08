@@ -13,9 +13,11 @@ function interpolate_current(dy::AbstractArray{T, 2}, internalsteps) where T
     result = Array{T}(undef, n * internalsteps, m)
     for i = 1:m
         result[:,i] = interpolate_current(dy[:,i], internalsteps)
-    end
+    end 
     return result
 end
+
+
 
 PriorGaussian(omega, omegaMean, Sigma) = exp.( - ((omega .- omegaMean).^2)/(2*Sigma^2))
 
@@ -92,30 +94,30 @@ Pi1=[cos(phi)^2 sin(phi)*cos(phi) ; sin(phi)*cos(phi) sin(phi)^2]
 #
 t = (1:Ntime)*dt
 
-rho = Array{ComplexF64}(undef, 2,2,Nomega+1);
+rho = Array{ComplexF64}(undef, 2,2,Nomega+1)
 
-probBayes = Array{Float64}(undef, Nomega+1, Ntime);    
+probBayes = Array{Float64}(undef, Nomega+1, Ntime)
 lklhood = ones(Nomega + 1)/Nomega #Array{Float64}(undef, Nomega+1);
 
-probStrong = Array{Float64}(undef, Nomega+1 );    
+probStrong = Array{Float64}(undef, Nomega+1 )
 lklhoodStrong = ones(Nomega + 1)/Nomega #Array{Float64}(undef, Nomega+1);
 
-probBayesTraj = Array{Float64}(undef, Nomega+1, Ntraj, Ntime);    
-lklhoodTraj = Array{Float64}(undef, Nomega+1);
+probBayesTraj = Array{Float64}(undef, Nomega+1, Ntraj, Ntime)
+lklhoodTraj = Array{Float64}(undef, Nomega+1)
 
-omegaEst = Array{Float64}(undef, Ntime);
-sigmaBayes = Array{Float64}(undef, Ntime);
-omegaMaxLik = Array{Float64}(undef, Ntime);
+omegaEst = Array{Float64}(undef, Ntime)
+sigmaBayes = Array{Float64}(undef, Ntime)
+omegaMaxLik = Array{Float64}(undef, Ntime)
 
-omegaEstStrong = Array{Float64}(undef, Ntraj);
-sigmaStrong = Array{Float64}(undef, Ntraj);
-omegaMaxLikStrong = Array{Float64}(undef, Ntraj);
+omegaEstStrong = Array{Float64}(undef, Ntraj)
+sigmaStrong = Array{Float64}(undef, Ntraj)
+omegaMaxLikStrong = Array{Float64}(undef, Ntraj)
                                 
 AvgZcond = Array{Float64}(undef, Ntraj,Ntime)
 
 idt = dt / internalsteps
 
-H = [(o/2.) * sy for o in omegay]; # Hamiltonian of the qubit
+H = [(o/2.) * sy for o in omegay] # Hamiltonian of the qubit
 
 M0 = I - ((cF'*cF)/2 + (cD'*cD)/2 + (cPhi'*cPhi)/2) * idt
 rho0 = cat([RhoIn for i=1:Nomega+1]..., dims=3)
@@ -132,20 +134,24 @@ for ktraj = 1:Ntraj
                 offset = - Ntime * internalsteps + jt * internalsteps + intt - internalsteps
                 
                 if jt <= unconditional_timesteps
-                    M1 = M0;
+                    M1 = M0
                 else
-                    M1 = M0 + sqrt(etavalF/2) * cF * (dyHet1[end + offset, ktraj] - 1im * dyHet2[end + offset, ktraj]) + sqrt(etavalD) * (cD * dyDep[end + offset, ktraj])
+                    M1 = M0 + sqrt(etavalF/2) * cF * (dyHet1[end + offset, ktraj] - 
+                                                1im * dyHet2[end + offset, ktraj]) + 
+                              sqrt(etavalD) * (cD * dyDep[end + offset, ktraj])
                 end
                     
                 M = M1 - 1im * SMatrix{2,2}(H[jomega]) * idt
     #            rhotmp = @views rho[:,:,jomega]
                 newRho = M * rhotmp * M'
                 if  jt<=3
-                    newRho += idt * (cF * rhotmp * cF') 
-                    newRho += idt * (cD * rhotmp * cD')
-                    newRho += idt * (cPhi * rhotmp * cPhi');
+                    newRho += idt * (cF * rhotmp * cF') +
+                                idt * (cD * rhotmp * cD') +
+                                idt * (cPhi * rhotmp * cPhi')
                 else        
-                    newRho += (1 - etavalF) * idt * (cF * rhotmp * cF') +  (1 - etavalD) * idt * (cD * rhotmp * cD') +  idt * (cPhi * rhotmp * cPhi');
+                    newRho += (1 - etavalF) * idt * (cF * rhotmp * cF') +  
+                              (1 - etavalD) * idt * (cD * rhotmp * cD') + 
+                              idt * (cPhi * rhotmp * cPhi');
                 end
 
                 rhotmp = copy(newRho)
