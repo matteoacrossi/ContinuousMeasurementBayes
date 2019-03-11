@@ -19,7 +19,7 @@ end
 
 PriorGaussian(omega, omegaMean, Sigma) = exp.( - ((omega .- omegaMean).^2)/(2*Sigma^2))
 
-function Likelihood_strong(dyHet1, dyHet2, dyDep, OutZ, Ntime;
+function Likelihood_strong_internal(dyHet1, dyHet2, dyDep, OutZ, Ntime;
     Tfinal = nothing, # Final time
     Gamma1 = nothing,   # Gamma fluoresence
     GammaD = nothing,    # Gamma dephasing controllable
