@@ -1,25 +1,9 @@
 using LinearAlgebra
 using StaticArrays
-using Interpolations
-
-function interpolate_current(dy::AbstractArray{T, 1}, internalsteps) where T
-    l = length(dy)
-    intp = LinearInterpolation(1:l, dy, extrapolation_bc=Flat())
-    return intp((1 : (l * internalsteps)) / Float64(internalsteps))
-end
-
-function interpolate_current(dy::AbstractArray{T, 2}, internalsteps) where T
-    (n, m) = size(dy)
-    result = Array{T}(undef, n * internalsteps, m)
-    for i = 1:m
-        result[:,i] = interpolate_current(dy[:,i], internalsteps)
-    end 
-    return result
-end
 
 PriorGaussian(omega, omegaMean, Sigma) = exp.( - ((omega .- omegaMean).^2)/(2*Sigma^2))
 
-function Likelihood_strong(dyHet1, dyHet2, dyDep, OutZ, Ntime;
+function Likelihood_strong_everystep(dyHet1, dyHet2, dyDep, OutZ, Ntime;
     Tfinal = nothing, # Final time
     Gamma1 = nothing,   # Gamma fluoresence
     GammaD = nothing,    # Gamma dephasing controllable
@@ -30,7 +14,7 @@ function Likelihood_strong(dyHet1, dyHet2, dyDep, OutZ, Ntime;
     omegaMax = nothing, #maximum value of omega
     Nomega = nothing, # number of values of omega
     omegaTrue = nothing, threshold = nothing, 
-    internalsteps = 1,
+    internalsteps = 10,
     kwargs...)  #true value of omega
 
 #@assert size(dyHet1) == size(dyHet2) == size(dyDep), "Current sizes don't match"
@@ -40,17 +24,18 @@ dimJ = 2 # Dimension of the corresponding Hilbert space
 unconditional_timesteps = 3
 
 # We take into account the internal timesteps
-# Ntime *= internalsteps
+Ntime *= internalsteps
 dt = Tfinal / Ntime
-# unconditional_timesteps *= internalsteps
+unconditional_timesteps *= internalsteps
 
-if internalsteps > 1
-    # We devide the currents by the number of internal timesteps and
-    # repeat each element for that number
-    dyHet1 = interpolate_current(dyHet1 / internalsteps, internalsteps)
-    dyHet2 = interpolate_current(dyHet2 / internalsteps, internalsteps)
-    dyDep = interpolate_current(dyDep / internalsteps, internalsteps)
-end
+# We devide the currents by the number of internal timesteps and
+# repeat each element for that number
+dyHet1 ./= internalsteps
+dyHet1 = repeat(dyHet1,inner=[internalsteps,1])
+dyHet2 ./= internalsteps
+dyHet2 = repeat(dyHet2,inner=[internalsteps,1])
+dyDep ./= internalsteps
+dyDep = repeat(dyDep,inner=[internalsteps,1])
 
 Ntraj = size(dyHet1,2)
     
@@ -93,90 +78,80 @@ Pi1=[cos(phi)^2 sin(phi)*cos(phi) ; sin(phi)*cos(phi) sin(phi)^2]
 #
 t = (1:Ntime)*dt
 
-rho = Array{ComplexF64}(undef, 2,2,Nomega+1)
+rho = Array{ComplexF64}(undef, 2,2,Nomega+1);
 
-probBayes = Array{Float64}(undef, Nomega+1, Ntime)
+probBayes = Array{Float64}(undef, Nomega+1, Ntime);    
 lklhood = ones(Nomega + 1)/Nomega #Array{Float64}(undef, Nomega+1);
 
-probStrong = Array{Float64}(undef, Nomega+1 )
+probStrong = Array{Float64}(undef, Nomega+1 );    
 lklhoodStrong = ones(Nomega + 1)/Nomega #Array{Float64}(undef, Nomega+1);
 
-probBayesTraj = Array{Float64}(undef, Nomega+1, Ntraj, Ntime)
-lklhoodTraj = Array{Float64}(undef, Nomega+1)
+probBayesTraj = Array{Float64}(undef, Nomega+1, Ntraj, Ntime);    
+lklhoodTraj = Array{Float64}(undef, Nomega+1);
 
-omegaEst = Array{Float64}(undef, Ntime)
-sigmaBayes = Array{Float64}(undef, Ntime)
-omegaMaxLik = Array{Float64}(undef, Ntime)
+omegaEst = Array{Float64}(undef, Ntime);
+sigmaBayes = Array{Float64}(undef, Ntime);
+omegaMaxLik = Array{Float64}(undef, Ntime);
 
-omegaEstStrong = Array{Float64}(undef, Ntraj)
-sigmaStrong = Array{Float64}(undef, Ntraj)
-omegaMaxLikStrong = Array{Float64}(undef, Ntraj)
+omegaEstStrong = Array{Float64}(undef, Ntraj);
+sigmaStrong = Array{Float64}(undef, Ntraj);
+omegaMaxLikStrong = Array{Float64}(undef, Ntraj);
                                 
 AvgZcond = Array{Float64}(undef, Ntraj,Ntime)
+ 
+H = [(o/2.) * sy for o in omegay]; # Hamiltonian of the qubit
 
-idt = dt / internalsteps
-
-H = [(o/2.) * sy for o in omegay] # Hamiltonian of the qubit
-
-M0 = I - ((cF'*cF)/2 + (cD'*cD)/2 + (cPhi'*cPhi)/2) * idt
+M0 = I - ((cF'*cF)/2 + (cD'*cD)/2 + (cPhi'*cPhi)/2) * dt
 rho0 = cat([RhoIn for i=1:Nomega+1]..., dims=3)
 
 for ktraj = 1:Ntraj
     copy!(rho, rho0)
     for jt=1:Ntime
+
+        if jt <= unconditional_timesteps
+            M1 = M0;
+        else
+            M1 = M0 + sqrt(etavalF/2) * cF * (dyHet1[end - Ntime + jt, ktraj] - 1im * dyHet2[end - Ntime + jt, ktraj]) + 
+                    sqrt(etavalD) * (cD * dyDep[end - Ntime + jt, ktraj])
+        end
+            
         for jomega = 1:(Nomega+1)
         #in questo ciclo mi calcolo le likelihood della misura al tempo jt per ciascun valore di omega
             
+            #H = (omegay[jomega]/2.) * sy; # Hamiltonian of the qubit
+
+            M = M1 - 1im * SMatrix{2,2}(H[jomega]) * dt
             rhotmp = SMatrix{2,2}(view(rho,:,:,jomega))
-            newRho = similar(rhotmp)
-            for intt = 1 : internalsteps
-                offset = - Ntime * internalsteps + jt * internalsteps + intt - internalsteps
-                
-                if jt <= unconditional_timesteps
-                    M1 = M0
-                else
-                    M1 = M0 + sqrt(etavalF/2) * cF * (dyHet1[end + offset, ktraj] - 
-                                                1im * dyHet2[end + offset, ktraj]) + 
-                              sqrt(etavalD) * (cD * dyDep[end + offset, ktraj])
-                end
-                    
-                M = M1 - 1im * SMatrix{2,2}(H[jomega]) * idt
-    #            rhotmp = @views rho[:,:,jomega]
-                newRho = M * rhotmp * M'
-                if  jt<=3
-                    newRho += idt * (cF * rhotmp * cF') +
-                                idt * (cD * rhotmp * cD') +
-                                idt * (cPhi * rhotmp * cPhi')
-                else        
-                    newRho += (1 - etavalF) * idt * (cF * rhotmp * cF') +  
-                              (1 - etavalD) * idt * (cD * rhotmp * cD') + 
-                              idt * (cPhi * rhotmp * cPhi');
-                end
-
-                rhotmp = copy(newRho)
+#            rhotmp = @views rho[:,:,jomega]
+            newRho = M * rhotmp * M'
+            if  jt<=3
+                newRho += dt * (cF * rhotmp * cF') 
+                newRho += dt * (cD * rhotmp * cD')
+                newRho += dt * (cPhi * rhotmp * cPhi');
+            else        
+                newRho += (1 - etavalF) * dt * (cF * rhotmp * cF') +  (1 - etavalD) * dt * (cD * rhotmp * cD') +  dt * (cPhi * rhotmp * cPhi');
             end
-
-            lklhood[jomega] = real(tr(newRho))
+            
+            lklhood[jomega] = real(tr(newRho));
                 
-            rho[:,:,jomega] = newRho / lklhood[jomega]
+            rho[:,:,jomega] = newRho / lklhood[jomega];
 
-            # Correction factor
-            lklhood[jomega] = lklhood[jomega] - internalsteps * (omegay[jomega] * idt / 2)^2
+            lklhood[jomega] = lklhood[jomega] - (omegay[jomega] * dt / 2)^2;
                             
             if abs(omegay[jomega]-omegaTrue) < domega    
-                AvgZcond[ktraj,jt] = real(tr(rho[:,:,jomega]*sz))
+                AvgZcond[ktraj,jt] = real(tr(rho[:,:,jomega]*sz));
             end
 
             if jt == Ntime
-                pPlus = real(tr(rho[:,:,jomega]*PiPlus))
+                pPlus = real(tr(rho[:,:,jomega]*PiPlus));
                 if OutZ[ktraj] >= threshold
-                    lklhoodStrong[jomega] = pPlus
+                    lklhoodStrong[jomega] = pPlus;
                 else
-                    lklhoodStrong[jomega] = (1 - pPlus)
+                    lklhoodStrong[jomega] = (1 - pPlus);
                 end
             end
         end  # fine ciclo su omega
-
+        
         if jt == 1
             lklhoodTraj = lklhood  #likelihood singola traiettoria
             if ktraj == 1
