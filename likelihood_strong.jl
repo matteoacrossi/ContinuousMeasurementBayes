@@ -104,7 +104,7 @@ for ktraj = 1:Ntraj
             
             #H = (omegay[jomega]/2.) * sy; # Hamiltonian of the qubit
             Hw =  SMatrix{2,2}(H[jomega])
-            M = M1 - 1im * Hw * dt - 0.5 * Hw^2 * dt ^ 2
+            M = M1 - 1im * Hw * dt - 0.5 * Hw^2 * dt^2 
             rhotmp = SMatrix{2,2}(view(rho,:,:,jomega))
 #            rhotmp = @views rho[:,:,jomega]
             newRho = M * rhotmp * M'
@@ -120,8 +120,9 @@ for ktraj = 1:Ntraj
                 
             rho[:,:,jomega] = newRho / lklhood[jomega];
 
-            #lklhood[jomega] = lklhood[jomega] - (omegay[jomega] * dt / 2)^2;
-                            
+            #lklhood[jomega] = lklhood[jomega] - (omegay[jomega] * dt / 2)^2 
+            lklhood[jomega] -= (1/4)*(omegay[jomega] * dt/2)^4
+            
             if abs(omegay[jomega]-omegaTrue) < domega    
                 AvgZcond[ktraj,jt] = real(tr(rho[:,:,jomega]*sz));
             end
