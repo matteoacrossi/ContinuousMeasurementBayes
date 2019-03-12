@@ -103,8 +103,8 @@ for ktraj = 1:Ntraj
         #in questo ciclo mi calcolo le likelihood della misura al tempo jt per ciascun valore di omega
             
             #H = (omegay[jomega]/2.) * sy; # Hamiltonian of the qubit
-
-            M = M1 - 1im * SMatrix{2,2}(H[jomega]) * dt
+            Hw =  SMatrix{2,2}(H[jomega])
+            M = M1 - 1im * Hw * dt - 0.5 * Hw^2 * dt ^ 2
             rhotmp = SMatrix{2,2}(view(rho,:,:,jomega))
 #            rhotmp = @views rho[:,:,jomega]
             newRho = M * rhotmp * M'
@@ -120,7 +120,7 @@ for ktraj = 1:Ntraj
                 
             rho[:,:,jomega] = newRho / lklhood[jomega];
 
-            lklhood[jomega] = lklhood[jomega] - (omegay[jomega] * dt / 2)^2;
+            #lklhood[jomega] = lklhood[jomega] - (omegay[jomega] * dt / 2)^2;
                             
             if abs(omegay[jomega]-omegaTrue) < domega    
                 AvgZcond[ktraj,jt] = real(tr(rho[:,:,jomega]*sz));
@@ -136,6 +136,8 @@ for ktraj = 1:Ntraj
             end
         end  # fine ciclo su omega
         
+       # println(lklhood)
+
         if jt == 1
             lklhoodTraj = lklhood  #likelihood singola traiettoria
             if ktraj == 1
@@ -176,7 +178,7 @@ for ktraj = 1:Ntraj
             probStrong[:] = lklhoodStrong/normStrong;
             
             omegaEstStrong[ktraj] = sum(probStrong[:].*omegay);
-            sigmaStrong[ktraj] = sqrt(sum(probStrong[:].*(omegay.^2)) - omegaEstStrong[ktraj]^2);
+            sigmaStrong[ktraj] = sqrt(zchop(sum(probStrong[:].*(omegay.^2)) - omegaEstStrong[ktraj]^2));
                     
             indMStrong = argmax(probStrong[:]);   
             omegaMaxLikStrong[ktraj] = omegay[indMStrong];
