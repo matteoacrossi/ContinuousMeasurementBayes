@@ -4,16 +4,16 @@ using StaticArrays
 PriorGaussian(omega, omegaMean, Sigma) = exp.( - ((omega .- omegaMean).^2)/(2*Sigma^2))
                        
 function Likelihood(dyHet1, dyHet2, dyDep, Ntime;
-    Tfinal = 20., # Final time
-    Gamma1 = 1. / 15 ,   # Gamma fluoresence
-    GammaD = 1. / (0.3),    # Gamma dephasing controllable
-    GammaPhi = 1. / (17.9),  # Gamma dephasing not controllable
-    etavalF=0.14, #efficiency fluoresence heterodyne
-    etavalD=0.34, #efficiency dephasing homodyne
-    omegaMin = 0, #minimum value of omega
-    omegaMax=1. *pi, #maximum value of omega
-    Nomega = 500, # number of values of omega
-    omegaTrue = 2. *pi/5., threshold = 0.375, kwargs...)  #true value of omega
+    Tfinal = nothing, # Final time
+    Gamma1 = nothing,   # Gamma fluoresence
+    GammaD = nothing,    # Gamma dephasing controllable
+    GammaPhi =nothing,  # Gamma dephasing not controllable
+    etavalF=nothing, #efficiency fluoresence heterodyne
+    etavalD=nothing, #efficiency dephasing homodyne
+    omegaMin = nothing, #minimum value of omega
+    omegaMax=nothing, #maximum value of omega
+    Nomega = nothing, # number of values of omega
+    omegaTrue = nothing, kwargs...)  #true value of omega
 
 #@assert size(dyHet1) == size(dyHet2) == size(dyDep), "Current sizes don't match"
 

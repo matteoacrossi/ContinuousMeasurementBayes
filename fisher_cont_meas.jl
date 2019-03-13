@@ -21,15 +21,15 @@ end
 
 function parallel_fluo_continuous_measurement_het_classic_initial0(Ntraj;
         # i will use all the data of the experiment taking as a unit of time 1 microsecond               
-        Tfinal = 6, # Final time
-        Ntime = 2000, # Number of timesteps
-        Gamma1 = 1. /15 ,   # Gamma fluoresence
-        GammaD = 1. /(0.3),    # Gamma dephasing controllable
-        GammaPhi = 1. /(17.9),  # Gamma dephasing not controllable
-        etavalF=0.14, #efficiency fluoresence heterodyne
-        etavalD=0.34, #efficiency dephasing homodyne
-        phi = 0., #phase of the strong measurement    
-        omegaTrue = 0*2*pi, params...) # omegaz
+        Tfinal = nothing, # Final time
+        Ntime = nothing, # Number of timesteps
+        Gamma1 = nothing,   # Gamma fluoresence
+        GammaD = nothing,    # Gamma dephasing controllable
+        GammaPhi = nothing,  # Gamma dephasing not controllable
+        etavalF = nothing, #efficiency fluoresence heterodyne
+        etavalD = nothing, #efficiency dephasing homodyne
+        phi = nothing, #phase of the strong measurement    
+        omegaTrue = nothing, params...) # omegaz
 
     omegay = omegaTrue
   jtot = 1 / 2; #Total spin
