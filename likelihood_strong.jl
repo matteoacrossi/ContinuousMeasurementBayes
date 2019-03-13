@@ -13,7 +13,9 @@ function Likelihood_strong(dyHet1, dyHet2, dyDep, OutZ, Ntime;
     omegaMin = nothing, #minimum value of omega
     omegaMax=nothing, #maximum value of omega
     Nomega = nothing, # number of values of omega
-    omegaTrue = nothing, threshold = nothing, kwargs...)  #true value of omega
+    omegaTrue = nothing, 
+    unconditional_timesteps = nothing,
+    threshold = nothing, kwargs...)  #true value of omega
 
 #@assert size(dyHet1) == size(dyHet2) == size(dyDep), "Current sizes don't match"
 
@@ -93,7 +95,7 @@ for ktraj = 1:Ntraj
     copy!(rho, rho0)
     for jt=1:Ntime
 
-        if jt <= 3
+        if jt <= unconditional_timesteps
             M1 = M0;
         else
             M1 = M0 + sqrt(etavalF/2) * cF * (dyHet1[end - Ntime + jt, ktraj] - 1im * dyHet2[end - Ntime + jt, ktraj]) + 
@@ -109,10 +111,10 @@ for ktraj = 1:Ntraj
             rhotmp = SMatrix{2,2}(view(rho,:,:,jomega))
 #            rhotmp = @views rho[:,:,jomega]
             newRho = M * rhotmp * M'
-            if  jt<=3
-                newRho += dt * (cF * rhotmp * cF') 
-                newRho += dt * (cD * rhotmp * cD')
-                newRho += dt * (cPhi * rhotmp * cPhi');
+            if  jt <= unconditional_timesteps
+                newRho += dt * (cF * rhotmp * cF') +
+                          dt * (cD * rhotmp * cD') +
+                          dt * (cPhi * rhotmp * cPhi')
             else        
                 newRho += (1 - etavalF) * dt * (cF * rhotmp * cF') +  (1 - etavalD) * dt * (cD * rhotmp * cD') +  dt * (cPhi * rhotmp * cPhi');
             end

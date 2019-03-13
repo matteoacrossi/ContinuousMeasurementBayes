@@ -17,8 +17,9 @@ params = Dict( :Tfinal    => 20., # Final time
                :omegaTrue => 2 * pi / Trabi, # True value of omega
                :omegaMin  => 2., # minimum value of omega
                :omegaMax  => 4., # maximum value of omega
-               :threshold => 0.375,
-               :Nomega    => 500); # Resolution in omega for the Bayesian estimation
+               :threshold => 0.375, # Threshold for final measurement (experimental data)
+               :Nomega    => 500, # Resolution in omega for the Bayesian estimation
+               :unconditional_timesteps => 3);
 
 
 include("fluo_cont_meas_sim.jl")
