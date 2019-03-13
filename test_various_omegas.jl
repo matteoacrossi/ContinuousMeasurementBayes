@@ -42,7 +42,7 @@ using Random
                     :unconditional_timesteps => 3,
                     :Nomega    => 300); # Resolution in omega for the Bayesian estimation
 
-    end
+end
 
     
 
@@ -60,7 +60,7 @@ end
 linreg(x, y) = reverse([x ones(length(x))] \ y)
 
 omegas = rand(0.25:0.00001:5, nomegas)
-@time res = pmap(o -> vsomega(o, Ntrajectories, params), omegas, batch_size=nprocs()-1)
+@time res = pmap(o -> vsomega(o, NTrajectories, params), omegas, batch_size=nprocs()-1)
 
 println("Making plot...")
 processed = collect.(collect(zip(res...)))
