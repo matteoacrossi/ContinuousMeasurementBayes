@@ -186,7 +186,7 @@ for ktraj = 1:Ntraj
         
         if ktraj == Ntraj        
             omegaEst[jt] = sum(probBayes[:,jt].*omegay);
-            sigmaBayes[jt] = sqrt(zchop(sum(probBayes[:,jt].*(omegay.^2)) - omegaEst[jt]^2));
+            sigmaBayes[jt] = sqrt(sum(probBayes[:,jt].*(omegay.^2)) - omegaEst[jt]^2)
                 
             indM = argmax(probBayes[:,jt]);   
             omegaMaxLik[jt]=omegay[indM];

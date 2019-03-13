@@ -13,14 +13,15 @@ function Likelihood(dyHet1, dyHet2, dyDep, Ntime;
     omegaMin = nothing, #minimum value of omega
     omegaMax=nothing, #maximum value of omega
     Nomega = nothing, # number of values of omega
-    omegaTrue = nothing, kwargs...)  #true value of omega
+    omegaTrue = nothing,
+    unconditional_timesteps = nothing, kwargs...)  #true value of omega
 
 #@assert size(dyHet1) == size(dyHet2) == size(dyDep), "Current sizes don't match"
 
 dimJ = 2; # Dimension of the corresponding Hilbert space
 
 dt = Tfinal / Ntime;
-    
+
 Ntraj = size(dyHet1,2)
     
 domega = (omegaMax - omegaMin) / Nomega;
@@ -83,7 +84,7 @@ for ktraj = 1:Ntraj
     
     for jt=1:Ntime
 
-        if jt <= 3
+        if jt <= unconditional_timesteps
             M1 = M0;
         else    
             M1 = M0 + sqrt(etavalF/2) * cF * (dyHet1[end - Ntime + jt, ktraj] - 1im * dyHet2[end - Ntime + jt, ktraj]) + 
