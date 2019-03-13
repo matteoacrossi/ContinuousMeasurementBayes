@@ -24,8 +24,8 @@ using Random
     Trabi = 2.
     Tphi = 17.9
     
-    NTrajectories = 100
-    nomegas = 10
+    NTrajectories = 500
+    nomegas = 200
         
     # Parameter dictionary to be passed to the functions
     params = Dict( :Tfinal    => 20., # Final time
