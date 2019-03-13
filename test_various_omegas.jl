@@ -1,4 +1,5 @@
 using Distributed
+using Printf
 #addprocs(2)
 
 @everywhere using Pkg
@@ -67,9 +68,9 @@ processed = collect.(collect(zip(res...)))
 coeff = linreg(omegas, processed[1] - omegas)
 scatter(omegas, (processed[1] .- omegas), label="Sim")
 plot!([0,5],[0,0], style=:dash, color=:black, label=L"\Omega_{true}")
-plot!([0,5], coeff[2] .* [0,5] .+ coeff[1], label="Fit")
+plot!([0,5], coeff[2] .* [0,5] .+ coeff[1], label= (@sprintf "Fit: %.3f x + %.3f" coeff[2] coeff[1]))
 xlabel!(L"\Omega_{true}")
 ylabel!(L"\Omega_{est}- \Omega_{true}")
-title!("1000 trajectories")
+title!(@sprintf "%d trajectories" NTrajectories)
 
 savefig("Estimation_vs_omega.png")
