@@ -110,7 +110,7 @@ for ktraj = 1:Ntraj
 
             M = M1 - 1im * SMatrix{2,2}(H[jomega]) * dt
             rhotmp = SMatrix{2,2}(view(rho,:,:,jomega))
-#            rhotmp = @views rho[:,:,jomega]
+            
             newRho = M * rhotmp * M'
             if  jt <= unconditional_timesteps
                 newRho += (dt * (cF * rhotmp * cF') +
