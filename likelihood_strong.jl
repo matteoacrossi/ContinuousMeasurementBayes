@@ -110,7 +110,7 @@ for ktraj = 1:Ntraj
 
             M = M1 - 1im * SMatrix{2,2}(H[jomega]) * dt
             rhotmp = SMatrix{2,2}(view(rho,:,:,jomega))
-            
+
             newRho = M * rhotmp * M'
             if  jt <= unconditional_timesteps
                 newRho += (dt * (cF * rhotmp * cF') +
@@ -123,11 +123,11 @@ for ktraj = 1:Ntraj
             end
             
             lklhood[jomega] = real(tr(newRho));
-                
             rho[:,:,jomega] = newRho / lklhood[jomega];
-
+            
             lklhood[jomega] = lklhood[jomega] - (omegay[jomega] * dt / 2)^2;
-                            
+                
+                
             if abs(omegay[jomega]-omegaTrue) < domega    
                 AvgZcond[ktraj,jt] = real(tr(rho[:,:,jomega]*sz));
             end
@@ -204,8 +204,8 @@ end # fine ciclo su traiettorie
 return (t=t, 
         omegas=omegay, 
         AvgZcond=AvgZcond, 
-        probBayes=probBayes, 
-        probBayesTraj=probBayesTraj, 
+        #probBayes=probBayes, 
+        #probBayesTraj=probBayesTraj, 
         omegaEst=omegaEst, 
         omegaMaxLik=omegaMaxLik,
         sigmaBayes=sigmaBayes,
