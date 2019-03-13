@@ -98,7 +98,8 @@ for ktraj = 1:Ntraj
         if jt <= unconditional_timesteps
             M1 = M0;
         else
-            M1 = M0 + sqrt(etavalF/2) * cF * (dyHet1[end - Ntime + jt, ktraj] - 1im * dyHet2[end - Ntime + jt, ktraj]) + 
+            M1 = M0 + sqrt(etavalF/2) * cF * (dyHet1[end - Ntime + jt, ktraj] - 
+                                    1im * dyHet2[end - Ntime + jt, ktraj]) + 
                     sqrt(etavalD) * (cD * dyDep[end - Ntime + jt, ktraj])
         end
             
@@ -112,11 +113,13 @@ for ktraj = 1:Ntraj
 #            rhotmp = @views rho[:,:,jomega]
             newRho = M * rhotmp * M'
             if  jt <= unconditional_timesteps
-                newRho += dt * (cF * rhotmp * cF') +
+                newRho += (dt * (cF * rhotmp * cF') +
                           dt * (cD * rhotmp * cD') +
-                          dt * (cPhi * rhotmp * cPhi')
+                          dt * (cPhi * rhotmp * cPhi'))
             else        
-                newRho += (1 - etavalF) * dt * (cF * rhotmp * cF') +  (1 - etavalD) * dt * (cD * rhotmp * cD') +  dt * (cPhi * rhotmp * cPhi');
+                newRho += (dt * (1 - etavalF) * (cF * rhotmp * cF') + 
+                          dt * (1 - etavalD) * (cD * rhotmp * cD') +  
+                          dt * (cPhi * rhotmp * cPhi'))
             end
             
             lklhood[jomega] = real(tr(newRho));
@@ -198,7 +201,15 @@ for ktraj = 1:Ntraj
         
 end # fine ciclo su traiettorie
 
-return (t=t, omegas=omegay, AvgZcond=AvgZcond, probBayes=probBayes, probBayesTraj=probBayesTraj, 
-        omegaEst=omegaEst, omegaMaxLik=omegaMaxLik, sigmaBayes=sigmaBayes, omegaEstStrong=omegaEstStrong, 
-        omegaMaxLikStrong=omegaMaxLikStrong, sigmaStrong=sigmaStrong)
+return (t=t, 
+        omegas=omegay, 
+        AvgZcond=AvgZcond, 
+        probBayes=probBayes, 
+        probBayesTraj=probBayesTraj, 
+        omegaEst=omegaEst, 
+        omegaMaxLik=omegaMaxLik,
+        sigmaBayes=sigmaBayes,
+        omegaEstStrong=omegaEstStrong, 
+        omegaMaxLikStrong=omegaMaxLikStrong, 
+        sigmaStrong=sigmaStrong)
 end
