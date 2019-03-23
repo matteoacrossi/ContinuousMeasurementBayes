@@ -7,11 +7,11 @@ function Likelihood_strong(dyHet1, dyHet2, dyDep, OutZ, Ntime;
     Tfinal = nothing, # Final time
     Gamma1 = nothing,   # Gamma fluoresence
     GammaD = nothing,    # Gamma dephasing controllable
-    GammaPhi =nothing,  # Gamma dephasing not controllable
-    etavalF=nothing, #efficiency fluoresence heterodyne
-    etavalD=nothing, #efficiency dephasing homodyne
+    GammaPhi = nothing,  # Gamma dephasing not controllable
+    etavalF = nothing, #efficiency fluoresence heterodyne
+    etavalD = nothing, #efficiency dephasing homodyne
     omegaMin = nothing, #minimum value of omega
-    omegaMax=nothing, #maximum value of omega
+    omegaMax = nothing, #maximum value of omega
     Nomega = nothing, # number of values of omega
     omegaTrue = nothing, 
     unconditional_timesteps = nothing,
@@ -23,18 +23,14 @@ dimJ = 2; # Dimension of the corresponding Hilbert space
 
 dt = Tfinal / Ntime;
     
-Ntraj = size(dyHet1,2)
+Ntraj = size(dyHet1, 2)
     
-domega = (omegaMax - omegaMin) / Nomega;
+omegay = collect(range(omegaMin, stop=omegaMax, length=Nomega))
+jomegaTrue = findmin(abs.(omegay .- omegaTrue))[2]
 
-omegay = Array{Float64}(undef, Nomega+1);  
-priorG = Array{Float64}(undef, Nomega+1); 
+priorG = PriorGaussian(omegay, 0., 1. * pi)
 
-for jomega=1:(Nomega+1)
-    omegay[jomega] = real(omegaMin + (jomega-1)*domega);
-    priorG[jomega] = real(PriorGaussian(omegay[jomega],0.,1. *pi));
-end
-
+# Pauli operators
 sx::Array{ComplexF64} = [0 1 ; 1 0] 
 sy::Array{ComplexF64} = [0 -1im ; 1im 0]
 sz::Array{ComplexF64} = [1 0 ; 0 -1]
@@ -47,9 +43,9 @@ sy2 = sy^2
 sz2 = sz^2
 
 # We use static arrays to improve performance
-cF = SMatrix{2,2}(sqrt(1. *Gamma1)*sm)
-cD = SMatrix{2,2}(sqrt(1. *GammaD/2)*sz)
-cPhi = SMatrix{2,2}(sqrt(1. *GammaPhi/2)*sz)
+cF = SMatrix{2,2}(sqrt(Gamma1) * sm)
+cD = SMatrix{2,2}(sqrt(GammaD/2) * sz)
+cPhi = SMatrix{2,2}(sqrt(GammaPhi/2) * sz)
 
 # omega is the parameter that we want to estimate
 
@@ -65,16 +61,16 @@ Pi1=[cos(phi)^2 sin(phi)*cos(phi) ; sin(phi)*cos(phi) sin(phi)^2]
 #
 t = (1:Ntime)*dt;
 
-rho = Array{ComplexF64}(undef, 2,2,Nomega+1);
+rho = Array{ComplexF64}(undef, 2,2,Nomega);
 
-probBayes = Array{Float64}(undef, Nomega+1, Ntime);    
-lklhood = ones(Nomega + 1)/Nomega #Array{Float64}(undef, Nomega+1);
+probBayes = Array{Float64}(undef, Nomega, Ntime);    
+lklhood = ones(Nomega)/Nomega
 
-probStrong = Array{Float64}(undef, Nomega+1 );    
-lklhoodStrong = ones(Nomega + 1)/Nomega #Array{Float64}(undef, Nomega+1);
+probStrong = Array{Float64}(undef, Nomega);    
+lklhoodStrong = ones(Nomega)/Nomega
 
-probBayesTraj = Array{Float64}(undef, Nomega+1, Ntraj,Ntime);    
-lklhoodTraj = Array{Float64}(undef, Nomega+1);
+probBayesTraj = Array{Float64}(undef, Nomega, Ntraj,Ntime);    
+lklhoodTraj = Array{Float64}(undef, Nomega);
 
 omegaEst = Array{Float64}(undef, Ntime);
 sigmaBayes = Array{Float64}(undef, Ntime);
@@ -85,11 +81,11 @@ sigmaStrong = Array{Float64}(undef, Ntraj);
 omegaMaxLikStrong = Array{Float64}(undef, Ntraj);
                                 
 AvgZcond = Array{Float64}(undef, Ntraj,Ntime)
- 
+
 H = [(o/2.) * sy for o in omegay]; # Hamiltonian of the qubit
 
 M0 = I - ((cF'*cF)/2 + (cD'*cD)/2 + (cPhi'*cPhi)/2) * dt
-rho0 = cat([RhoIn for i=1:Nomega+1]..., dims=3)
+rho0 = cat([RhoIn for i=1:Nomega]..., dims=3)
 
 for ktraj = 1:Ntraj
     copy!(rho, rho0)
@@ -103,7 +99,7 @@ for ktraj = 1:Ntraj
                     sqrt(etavalD) * (cD * dyDep[end - Ntime + jt, ktraj])
         end
             
-        for jomega = 1:(Nomega+1)
+        for jomega = 1:Nomega
         #in questo ciclo mi calcolo le likelihood della misura al tempo jt per ciascun valore di omega
             
             #H = (omegay[jomega]/2.) * sy; # Hamiltonian of the qubit
@@ -127,10 +123,7 @@ for ktraj = 1:Ntraj
             
             lklhood[jomega] = lklhood[jomega] - (omegay[jomega] * dt / 2)^2;
                 
-                
-            if abs(omegay[jomega]-omegaTrue) < domega    
-                AvgZcond[ktraj,jt] = real(tr(rho[:,:,jomega]*sz));
-            end
+              
 
             if jt == Ntime
                 pPlus = real(tr(rho[:,:,jomega]*PiPlus));
@@ -142,6 +135,9 @@ for ktraj = 1:Ntraj
             end
         end  # fine ciclo su omega
         
+        # Chech for the mean value of z operator
+        AvgZcond[ktraj,jt] = real(tr(rho[:,:,jomegaTrue]*sz));
+
         if jt == 1
             lklhoodTraj = lklhood  #likelihood singola traiettoria
             if ktraj == 1
