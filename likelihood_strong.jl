@@ -142,6 +142,7 @@ for ktraj = 1:Ntraj
         
         # Chech for the mean value of z operator
         AvgZcond[ktraj,jt] = real(tr(rho[:,:,jomegaTrue]*sz))
+
         # We update the likelihood
         # TODO: Make code more readable
         if jt == 1
@@ -180,13 +181,13 @@ for ktraj = 1:Ntraj
             if ktraj == 1
                 lklhoodStrong = lklhoodStrong .* probBayesTraj[:,ktraj,Ntime]
             else
-                lklhoodStrong = lklhoodStrong .* probBayesTraj[:,ktraj,Ntime] .* probStrong[:]
+                lklhoodStrong = lklhoodStrong .* probBayesTraj[:,ktraj,Ntime] .* probStrong
             end
             normStrong = sum(lklhoodStrong)
-            probStrong[:] = lklhoodStrong/normStrong
-            omegaEstStrong[ktraj] = sum(probStrong[:].*omegas)
-            sigmaStrong[ktraj] = sqrt(sum(probStrong[:].*(omegas.^2)) - omegaEstStrong[ktraj]^2)
-            indMStrong = argmax(probStrong[:])
+            probStrong = lklhoodStrong/normStrong
+            omegaEstStrong[ktraj] = sum(probStrong .* omegas)
+            sigmaStrong[ktraj] = sqrt(sum(probStrong .* (omegas .^ 2)) - omegaEstStrong[ktraj]^2)
+            indMStrong = argmax(probStrong)
             omegaMaxLikStrong[ktraj] = omegas[indMStrong]
         end
         
@@ -205,8 +206,8 @@ end # end cycle on trajectories
 return (t=t, 
         omegas=omegas, 
         AvgZcond=AvgZcond, 
-        #probBayes=probBayes, 
-        #probBayesTraj=probBayesTraj, 
+        probBayes=probBayes, 
+        probBayesTraj=probBayesTraj, 
         omegaEst=omegaEst, 
         omegaMaxLik=omegaMaxLik,
         sigmaBayes=sigmaBayes,
