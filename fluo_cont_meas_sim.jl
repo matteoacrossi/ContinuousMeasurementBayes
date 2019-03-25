@@ -133,5 +133,14 @@ function parallel_fluo_continuous_measurement_het_simulation(Ntraj;
       OutStrong[ktraj,:]=outS;  
   end
 
-  return (t=t, Ntime=Ntime, dyHet1=dyHet1', dyHet2=dyHet2', dyDep=dyDep', OutStrong=OutStrong', AvgZcondTrue=AvgZcondTrue)
+  # Collect is required, otherwise we are 
+  # returning SharedArrays; instead we want to return 
+  # standard arrays
+  return (t=t, 
+      Ntime=Ntime, 
+      dyHet1=collect(dyHet1'), 
+      dyHet2=collect(dyHet2'), 
+      dyDep=collect(dyDep'), 
+      OutStrong=collect(OutStrong'), 
+      AvgZcondTrue=collect(AvgZcondTrue))
 end
