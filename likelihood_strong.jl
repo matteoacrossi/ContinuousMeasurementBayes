@@ -8,17 +8,16 @@ function likelihood_strong(dyHet1::Array{Float64,2}, dyHet2::Array{Float64,2}, d
     Gamma1 = nothing,   # Gamma fluoresence
     GammaD = nothing,    # Gamma dephasing controllable
     GammaPhi = nothing,  # Gamma dephasing not controllable
-    etavalF = nothing, #efficiency fluoresence heterodyne
-    etavalD = nothing, #efficiency dephasing homodyne
-    omegaMin = nothing, #minimum value of omega
-    omegaMax = nothing, #maximum value of omega
+    etavalF = nothing, # efficiency fluoresence heterodyne
+    etavalD = nothing, # efficiency dephasing homodyne
+    omegaMin = nothing, # minimum value of omega
+    omegaMax = nothing, # maximum value of omega
     Nomega = nothing, # number of values of omega
     omegaTrue = nothing, 
     unconditional_timesteps = nothing,
     threshold = nothing, kwargs...)  #true value of omega
 
 @assert size(dyHet1) == size(dyHet2) == size(dyDep) "Current sizes don't match"
-
 
 @assert ndims(OutZ) == 1 "OutZ should be monodimensional"
 @assert length(OutZ) == size(dyHet1)[2] "Length of OutZ doesn't match other currents"
