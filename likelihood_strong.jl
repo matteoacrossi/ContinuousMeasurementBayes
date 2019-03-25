@@ -17,9 +17,11 @@ function Likelihood_strong(dyHet1, dyHet2, dyDep, OutZ, Ntime;
     unconditional_timesteps = nothing,
     threshold = nothing, kwargs...)  #true value of omega
 
-#@assert size(dyHet1) == size(dyHet2) == size(dyDep), "Current sizes don't match"
+@assert size(dyHet1) == size(dyHet2) == size(dyDep) "Current sizes don't match"
+@assert ndims(OutZ) == 1 "OutZ should be monodimensional"
+@assert length(OutZ) == size(dyHet1)[2] "Length of OutZ doesn't match other currents"
 
-dimJ = 2; # Dimension of the corresponding Hilbert space
+dimJ = 2; # Dimension of the Hilbert space
 
 dt = Tfinal / Ntime
 Ntraj = size(dyHet1, 2)
@@ -78,9 +80,11 @@ AvgZcond = Array{Float64}(undef, Ntraj, Ntime)
 
 # Hamiltonian of the qubit for all omegas
 H = [(o/2.) * sy for o in omegas]
+
 # Trajectory-independent part of the Kraus operator
 M0 = I - ((cF'*cF)/2 + (cD'*cD)/2 + (cPhi'*cPhi)/2) * dt
-rho0 = cat([RhoIn for i=1:Nomega]..., dims=3)
+
+rho0 = cat([RhoIn for i = 1:Nomega]..., dims = 3)
 
 for ktraj = 1:Ntraj
     copy!(rho, rho0)
@@ -95,12 +99,11 @@ for ktraj = 1:Ntraj
                     sqrt(etavalD) * (cD * dyDep[end - Ntime + jt, ktraj])
         end
             
-        for jomega = 1:Nomega
+        for jomega = 1 : Nomega
         #in questo ciclo mi calcolo le likelihood della misura al tempo jt per ciascun valore di omega
             
             #H = (omegas[jomega]/2.) * sy; # Hamiltonian of the qubit
 
-            
             M = M1 - 1im * SMatrix{2,2}(H[jomega]) * dt
             
             rhotmp = SMatrix{2,2}(view(rho,:,:,jomega))
@@ -120,9 +123,11 @@ for ktraj = 1:Ntraj
             # The likelihood is the trace of the density operator
             lklhood[jomega] = real(tr(newRho))
             rho[:,:,jomega] = newRho / lklhood[jomega]
+
             # We apply a correction corresponding to the effect of
             # the Hamiltonian on the trace 
             lklhood[jomega] = lklhood[jomega] - (omegas[jomega] * dt / 2)^2
+
             # At the end of the trajectory we perform the final 
             # strong measurement
             if jt == Ntime
@@ -165,8 +170,10 @@ for ktraj = 1:Ntraj
         # bayes probability
         norm = sum(lklhood)
         normTraj = sum(lklhoodTraj)
-        probBayes[:,jt] = lklhood/norm;   # probabilità Bayesiana considerando tutte le traiettorie
-        probBayesTraj[:,ktraj,jt]=lklhoodTraj /normTraj;  #probabilità Bayesiana singola traiettoria
+        # Bayesian probability considering all the trajectories
+        probBayes[:, jt] = lklhood / norm   
+        # Bayesian probability for the single trajectories
+        probBayesTraj[:, ktraj, jt] = lklhoodTraj / normTraj  
         
         # We update the Bayesian probability for the final strong measurement
         if jt == Ntime
