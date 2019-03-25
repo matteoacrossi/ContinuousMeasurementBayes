@@ -38,7 +38,7 @@ println("Simulating trajectories...")
 @time simData = parallel_fluo_continuous_measurement_het_simulation(NTrajectories; params...) 
 
 println("Estimating omega...")
-@time simRes = Likelihood_strong(simData.dyHet1, simData.dyHet2, simData.dyDep, simData.OutStrong, 2000; params...);
+@time simRes = likelihood_strong(simData.dyHet1, simData.dyHet2, simData.dyDep, simData.OutStrong, 2000; params...);
 
 println("Evaluating Fisher...")
 params_unconditional = copy(params)

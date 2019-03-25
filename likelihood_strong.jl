@@ -3,7 +3,7 @@ using StaticArrays
 
 PriorGaussian(omega, omegaMean, Sigma) = exp.( - ((omega .- omegaMean).^2)/(2*Sigma^2))
 
-function Likelihood_strong(dyHet1, dyHet2, dyDep, OutZ, Ntime;
+function likelihood_strong(dyHet1::Array{Float64,2}, dyHet2::Array{Float64,2}, dyDep::Array{Float64,2}, OutZ::Array{Float64,1};
     Tfinal = nothing, # Final time
     Gamma1 = nothing,   # Gamma fluoresence
     GammaD = nothing,    # Gamma dephasing controllable
@@ -18,8 +18,12 @@ function Likelihood_strong(dyHet1, dyHet2, dyDep, OutZ, Ntime;
     threshold = nothing, kwargs...)  #true value of omega
 
 @assert size(dyHet1) == size(dyHet2) == size(dyDep) "Current sizes don't match"
+
+
 @assert ndims(OutZ) == 1 "OutZ should be monodimensional"
 @assert length(OutZ) == size(dyHet1)[2] "Length of OutZ doesn't match other currents"
+
+Ntime = size(dyHet1, 1)
 
 dimJ = 2; # Dimension of the Hilbert space
 
