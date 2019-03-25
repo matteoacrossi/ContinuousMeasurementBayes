@@ -26,7 +26,7 @@ include("fluo_cont_meas_sim.jl")
 include("likelihood_strong.jl")
 
 @time simData = parallel_fluo_continuous_measurement_het_simulation(NTrajectories; params...) 
-@time simRes = Likelihood_strong(simData.dyHet1, simData.dyHet2, simData.dyDep, simData.OutStrong[end,:], 200; 
+@time simRes = likelihood_strong(simData.dyHet1, simData.dyHet2, simData.dyDep, simData.OutStrong[end,:]; 
         params...);
         
 # Test if the average values of z coincide
