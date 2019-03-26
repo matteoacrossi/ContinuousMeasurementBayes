@@ -21,4 +21,4 @@ julia --project=. test.jl
 
 ## Example
 
-Check the [Example notebook](Example.ipynb)
+Check the [Example notebook](Example.ipynb).
