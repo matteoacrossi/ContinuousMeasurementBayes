@@ -13,4 +13,12 @@ Pkg.activate(".")
 Pkg.instantiate()
 ```
 
-Check that everything is running 
+You can run a minimal test with the command
+
+```
+julia --project=. test.jl
+```
+
+## Example
+
+Check the [Example notebook](Example.ipynb)
