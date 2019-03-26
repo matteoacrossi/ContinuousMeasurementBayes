@@ -3,7 +3,7 @@ using StaticArrays
 
 PriorGaussian(omega, omegaMean, Sigma) = exp.( - ((omega .- omegaMean).^2)/(2*Sigma^2))
 
-function likelihood_strong(dyHet1::Array{Float64,2}, dyHet2::Array{Float64,2}, dyDep::Array{Float64,2}, OutZ::Array{Float64,1};
+function likelihood_strong(data;
     Tfinal = nothing, # Final time
     Gamma1 = nothing,   # Gamma fluoresence
     GammaD = nothing,    # Gamma dephasing controllable
@@ -17,10 +17,19 @@ function likelihood_strong(dyHet1::Array{Float64,2}, dyHet2::Array{Float64,2}, d
     unconditional_timesteps = nothing,
     threshold = nothing, kwargs...)  #true value of omega
 
+dyHet1 = data.dyHet1
+dyHet2 = data.dyHet2
+dyDep = data.dyDep
+OutStrong = data.OutStrong
+
 @assert size(dyHet1) == size(dyHet2) == size(dyDep) "Current sizes don't match"
 
-@assert ndims(OutZ) == 1 "OutZ should be monodimensional"
-@assert length(OutZ) == size(dyHet1)[2] "Length of OutZ doesn't match other currents"
+if ndims(OutStrong) == 2
+    # If the input comes from the simulation, we need the final time
+    OutStrong = OutStrong[end,:]
+end
+
+@assert length(OutStrong) == size(dyHet1)[2] "Length of OutStrong doesn't match other currents"
 
 Ntime = size(dyHet1, 1)
 
@@ -135,7 +144,7 @@ for ktraj = 1:Ntraj
             # strong measurement
             if jt == Ntime
                 pPlus = real(tr(rho[:,:,jomega]*PiPlus))
-                if OutZ[ktraj] >= threshold
+                if OutStrong[ktraj] >= threshold
                     lklhoodStrong[jomega] = pPlus
                 else
                     lklhoodStrong[jomega] = (1 - pPlus)
