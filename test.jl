@@ -26,8 +26,10 @@ include("fluo_cont_meas_sim.jl")
 include("likelihood_strong.jl")
 
 @time simData = parallel_fluo_continuous_measurement_het_simulation(NTrajectories; params...) 
-@time simRes = likelihood_strong(simData.dyHet1, simData.dyHet2, simData.dyDep, simData.OutStrong[end,:]; 
+@time simRes = likelihood_strong(simData; 
         params...);
         
 # Test if the average values of z coincide
 @assert isapprox(simData.AvgZcondTrue, simRes.AvgZcond, rtol=params[:dt]^2,atol=params[:dt]^2)
+
+println("Test passed!")
