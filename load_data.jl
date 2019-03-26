@@ -10,33 +10,34 @@ Load the data corresponding to the final z measurements.
 Returns a named tuple containing the three currents (rescaled)
 and the output of the strong measurement.
 """
-function load_z_data(file)
-    OutZ = read(file["z"])
-    chunk_n = Int(floor(length(OutZ) / CHUNK_SIZE))
+function load_z_data(filename)
+    file = h5open(filename)
+    OutStrong = read(file["z"])
+    chunk_n = Int(floor(length(OutStrong) / CHUNK_SIZE))
     indices = vcat([1 + (-1 + 3 * i ) * CHUNK_SIZE : 3* i * CHUNK_SIZE for i in 1:chunk_n]...)
-    print(size(OutZ))
+
     dyHet1 = read(file["u"])
-    dyHet1 = prepare_unconditional(rescale_experimental_data.(dyHet1[:,indices]))
-    print(size(dyHet1))
+    dyHet1 = prepend_unconditional(rescale_experimental_data.(dyHet1[:,indices]))
+
     dyHet2 = read(file["v"])
     dyHet2 = prepend_unconditional(rescale_experimental_data.(dyHet2[:,indices]))
-    print(size(dyHet2))
+
     dyDep =  read(file["w"])
     dyDep = prepend_unconditional(rescale_experimental_data.(dyDep[:,indices]))
-    print(size(dyDep))            
-    return (dyHet1=dyHet1, dyHet2=dyHet2, dyDep=dyDep, OutZ=prepend_unconditional(OutZ))
+
+    return (dyHet1=dyHet1, dyHet2=dyHet2, dyDep=dyDep, OutStrong=prepend_unconditional(OutStrong))
 end
  
 """
 Get a random sample of Ntraj from the data tuple dataTuple
 """
 function sample_data(Ntraj, dataTuple)
-    idx = sample(1:length(dataTuple.OutZ), Ntraj; replace=false, ordered=true)
+    idx = sample(1:length(dataTuple.OutStrong), Ntraj; replace=false, ordered=true)
     dyHet1 = dataTuple.dyHet1[:,idx]
     dyHet2 = dataTuple.dyHet2[:,idx]
     dyDep  = dataTuple.dyDep[:,idx]
-    OutZ = dataTuple.OutZ[idx]
-    return (dyHet1=dyHet1, dyHet2=dyHet2, dyDep=dyDep, OutZ=OutZ)
+    OutStrong = dataTuple.OutStrong[idx]
+    return (dyHet1=dyHet1, dyHet2=dyHet2, dyDep=dyDep, OutStrong=OutStrong)
 end
 
 function rescale_experimental_data(x, factor=10^(-3/2))
@@ -50,7 +51,8 @@ end
 """
 Gets a sample chunk of trajectories starting from a random index
 """
-function sample_data_chunk(Ntraj, file)
+function sample_data_chunk(Ntraj, filename)
+    file = h5open(filename)
     u_data = file["u"] 
     v_data = file["v"]
     w_data = file["w"]
@@ -60,11 +62,12 @@ function sample_data_chunk(Ntraj, file)
     dyHet1 = prepend_unconditional(u_data[:,idx:idx+Ntraj-1])
     dyHet2 = prepend_unconditional(v_data[:,idx:idx+Ntraj-1])
     dyDep  = prepend_unconditional(w_data[:,idx:idx+Ntraj-1])
-    OutZ   = prepend_unconditional(z_data[zidx:zidx+Ntraj-1, 1])
-    return (dyHet1, dyHet2, dyDep, OutZ)
+    OutStrong   = prepend_unconditional(z_data[zidx:zidx+Ntraj-1, 1])
+    return (dyHet1, dyHet2, dyDep, OutStrong)
 end
 
-function get_data_chunk(zidx, Ntraj, file)
+function get_data_chunk(zidx, Ntraj, filename)
+    file = h5open(filename)
     u_data = file["u"] 
     v_data = file["v"]
     w_data = file["w"]
@@ -73,6 +76,6 @@ function get_data_chunk(zidx, Ntraj, file)
     dyHet1 = prepend_unconditional(u_data[:,idx:idx+Ntraj-1])
     dyHet2 = prepend_unconditional(v_data[:,idx:idx+Ntraj-1])
     dyDep  = prepend_unconditional(w_data[:,idx:idx+Ntraj-1])
-    OutZ   = prepend_unconditional(z_data[zidx:zidx+Ntraj-1, 1])
-    return (dyHet1, dyHet2, dyDep, OutZ)
+    OutStrong   = prepend_unconditional(z_data[zidx:zidx+Ntraj-1, 1])
+    return (dyHet1, dyHet2, dyDep, OutStrong)
 end
