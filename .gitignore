@@ -2,4 +2,4 @@
 *.h5
 Bayesian_estimation.ipynb
 VarianceCheck.ipynb
-StrongMeasCheck.ipynb
+StrongMeasChecks.ipynb
