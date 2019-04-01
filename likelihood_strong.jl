@@ -8,8 +8,8 @@ function likelihood_strong(data;
     Gamma1 = nothing,   # Gamma fluoresence
     GammaD = nothing,    # Gamma dephasing controllable
     GammaPhi = nothing,  # Gamma dephasing not controllable
-    etavalF = nothing, # efficiency fluoresence heterodyne
-    etavalD = nothing, # efficiency dephasing homodyne
+    etaF = nothing, # efficiency fluoresence heterodyne
+    etaD = nothing, # efficiency dephasing homodyne
     omegaMin = nothing, # minimum value of omega
     omegaMax = nothing, # maximum value of omega
     Nomega = nothing, # number of values of omega
@@ -106,9 +106,9 @@ for ktraj = 1:Ntraj
             M1 = M0
         else
             # Omega-independent part of the Kraus operator
-            M1 = M0 + sqrt(etavalF/2) * cF * (dyHet1[end - Ntime + jt, ktraj] - 
+            M1 = M0 + sqrt(etaF/2) * cF * (dyHet1[end - Ntime + jt, ktraj] - 
                                     1im * dyHet2[end - Ntime + jt, ktraj]) + 
-                    sqrt(etavalD) * (cD * dyDep[end - Ntime + jt, ktraj])
+                    sqrt(etaD) * (cD * dyDep[end - Ntime + jt, ktraj])
         end
             
         for jomega = 1 : Nomega
@@ -127,8 +127,8 @@ for ktraj = 1:Ntraj
                           dt * (cD * rhotmp * cD') +
                           dt * (cPhi * rhotmp * cPhi'))
             else        
-                newRho += (dt * (1 - etavalF) * (cF * rhotmp * cF') + 
-                          dt * (1 - etavalD) * (cD * rhotmp * cD') +  
+                newRho += (dt * (1 - etaF) * (cF * rhotmp * cF') + 
+                          dt * (1 - etaD) * (cD * rhotmp * cD') +  
                           dt * (cPhi * rhotmp * cPhi'))
             end
             

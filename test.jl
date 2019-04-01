@@ -12,8 +12,8 @@ params = Dict( :Tfinal    => 20., # Final time
                :Gamma1    => 1. / T1,   # Gamma fluoresence
                :GammaD    => 1. / TD,  # Gamma dephasing controllable
                :GammaPhi  => 1. / Tphi,  # Gamma dephasing not controllable
-               :etavalF   => 0.14, # efficiency fluoresence heterodyne
-               :etavalD   => 0.34, # efficiency dephasing homodyne
+               :etaF   => 0.14, # efficiency fluoresence heterodyne
+               :etaD   => 0.34, # efficiency dephasing homodyne
                :omegaTrue => 2 * pi / Trabi, # True value of omega
                :omegaMin  => 2., # minimum value of omega
                :omegaMax  => 4., # maximum value of omega

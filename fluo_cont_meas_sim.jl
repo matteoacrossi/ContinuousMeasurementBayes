@@ -15,8 +15,8 @@ function parallel_fluo_continuous_measurement_het_simulation(Ntraj;
         Gamma1 = nothing,   # Gamma fluoresence
         GammaD = nothing,    # Gamma dephasing controllable
         GammaPhi = nothing,  # Gamma dephasing not controllable
-        etavalF = nothing, #efficiency fluoresence heterodyne
-        etavalD = nothing, #efficiency dephasing homodyne
+        etaF = nothing, #efficiency fluoresence heterodyne
+        etaD = nothing, #efficiency dephasing homodyne
         phi = nothing, #phase of strong measurement
         omegaTrue = nothing, args...) # omegaz
 
@@ -102,13 +102,13 @@ function parallel_fluo_continuous_measurement_het_simulation(Ntraj;
           # First three timesteps are unconditional
           if jt > 3 
               # Signal variation (Rouchon, Sec. 4.1)
-              dy1[jt] = sqrt(etavalF/2) * real(tr(rho*(cF+cF')))*dt + dWF1;
-              dy2[jt] = sqrt(etavalF/2) * real(tr(rho*(-1im*(cF-cF'))))*dt + dWF2;
-              dy3[jt] = sqrt(etavalD) * real(tr(rho*(cD+cD')))*dt + dWD;   
-              M = M0 + sqrt(etavalF/2) * (cF * dy1[jt] - 1im * cF * dy2[jt]) + sqrt(etavalD) * (cD * dy3[jt]);
+              dy1[jt] = sqrt(etaF/2) * real(tr(rho*(cF+cF')))*dt + dWF1;
+              dy2[jt] = sqrt(etaF/2) * real(tr(rho*(-1im*(cF-cF'))))*dt + dWF2;
+              dy3[jt] = sqrt(etaD) * real(tr(rho*(cD+cD')))*dt + dWD;   
+              M = M0 + sqrt(etaF/2) * (cF * dy1[jt] - 1im * cF * dy2[jt]) + sqrt(etaD) * (cD * dy3[jt]);
             end
             
-          newRho = M * rho * M' + (1 - etavalF) * dt * (cF * rho * cF') + (1 - etavalD) * dt * (cD * rho * cD') + dt * (cPhi * rho * cPhi');
+          newRho = M * rho * M' + (1 - etaF) * dt * (cF * rho * cF') + (1 - etaD) * dt * (cD * rho * cD') + dt * (cPhi * rho * cPhi');
           tr1 = tr(newRho);
 
           rho = newRho / tr1;

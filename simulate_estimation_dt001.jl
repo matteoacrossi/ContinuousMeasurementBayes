@@ -25,8 +25,8 @@ params = Dict( :Tfinal    => 20., # Final time
                :Gamma1    => 1. / T1,   # Gamma fluoresence
                :GammaD    => 1. / TD,  # Gamma dephasing controllable
                :GammaPhi  => 1. / Tphi,  # Gamma dephasing not controllable
-               :etavalF   => 0.14, # efficiency fluoresence heterodyne
-               :etavalD   => 0.34, # efficiency dephasing homodyne
+               :etaF   => 0.14, # efficiency fluoresence heterodyne
+               :etaD   => 0.34, # efficiency dephasing homodyne
                :omegaTrue => 2 * pi / Trabi, # True value of omega
                :omegaMin  => 2., # minimum value of omega
                :omegaMax  => 4., # maximum value of omega
@@ -42,8 +42,8 @@ println("Estimating omega...")
 
 println("Evaluating Fisher...")
 params_unconditional = copy(params)
-params_unconditional[:etavalF] = 0.
-params_unconditional[:etavalD] = 0.
+params_unconditional[:etaF] = 0.
+params_unconditional[:etaD] = 0.
 
 @time fisherUncResult = parallel_fluo_continuous_measurement_het_classic_initial0(10; Ntime=1000, params_unconditional...)
 @time fisherResult = parallel_fluo_continuous_measurement_het_classic_initial0(5000; Ntime=1000, params...);

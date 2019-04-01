@@ -8,8 +8,8 @@ function Likelihood(dyHet1, dyHet2, dyDep, Ntime;
     Gamma1 = nothing,   # Gamma fluoresence
     GammaD = nothing,    # Gamma dephasing controllable
     GammaPhi = nothing,  # Gamma dephasing not controllable
-    etavalF = nothing, #efficiency fluoresence heterodyne
-    etavalD = nothing, #efficiency dephasing homodyne
+    etaF = nothing, #efficiency fluoresence heterodyne
+    etaD = nothing, #efficiency dephasing homodyne
     omegaMin = nothing, #minimum value of omega
     omegaMax = nothing, #maximum value of omega
     Nomega = nothing, # number of values of omega
@@ -87,8 +87,8 @@ for ktraj = 1:Ntraj
         if jt <= unconditional_timesteps
             M1 = M0;
         else    
-            M1 = M0 + sqrt(etavalF/2) * cF * (dyHet1[end - Ntime + jt, ktraj] - 1im * dyHet2[end - Ntime + jt, ktraj]) + 
-                    sqrt(etavalD) * (cD * dyDep[end - Ntime + jt, ktraj]);
+            M1 = M0 + sqrt(etaF/2) * cF * (dyHet1[end - Ntime + jt, ktraj] - 1im * dyHet2[end - Ntime + jt, ktraj]) + 
+                    sqrt(etaD) * (cD * dyDep[end - Ntime + jt, ktraj]);
         end
         
         for jomega = 1:(Nomega+1)
@@ -105,7 +105,7 @@ for ktraj = 1:Ntraj
                 newRho += dt * (cD * rhotmp * cD')
                 newRho += dt * (cPhi * rhotmp * cPhi');
             else        
-                newRho += (1 - etavalF) * dt * (cF * rhotmp * cF') +  (1 - etavalD) * dt * (cD * rhotmp * cD') +  dt * (cPhi * rhotmp * cPhi');
+                newRho += (1 - etaF) * dt * (cF * rhotmp * cF') +  (1 - etaD) * dt * (cD * rhotmp * cD') +  dt * (cPhi * rhotmp * cPhi');
             end
             
             lklhood[jomega] = real(tr(newRho));

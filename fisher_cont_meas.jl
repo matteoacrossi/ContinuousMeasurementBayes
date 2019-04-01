@@ -26,8 +26,8 @@ function parallel_fluo_continuous_measurement_het_classic_initial0(Ntraj;
         Gamma1 = nothing,   # Gamma fluoresence
         GammaD = nothing,    # Gamma dephasing controllable
         GammaPhi = nothing,  # Gamma dephasing not controllable
-        etavalF = nothing, #efficiency fluoresence heterodyne
-        etavalD = nothing, #efficiency dephasing homodyne
+        etaF = nothing, #efficiency fluoresence heterodyne
+        etaD = nothing, #efficiency dephasing homodyne
         phi = nothing, #phase of the strong measurement    
         omegaTrue = nothing, params...) # omegaz
 
@@ -113,22 +113,22 @@ function parallel_fluo_continuous_measurement_het_classic_initial0(Ntraj;
             
           # We initialize dy1 and dy2 
           # Signal variation (Rouchon, Sec. 4.1)
-          dy1 = sqrt(etavalF/2) * tr(rho*(cF+cF'))*dt + dWF1;
-          dy2 = sqrt(etavalF/2) * tr(rho*(-1im*(cF-cF')))*dt + dWF2;
+          dy1 = sqrt(etaF/2) * tr(rho*(cF+cF'))*dt + dWF1;
+          dy2 = sqrt(etaF/2) * tr(rho*(-1im*(cF-cF')))*dt + dWF2;
             
-          dy3 = sqrt(etavalD) * tr(rho*(cD+cD'))*dt + dWD;   
+          dy3 = sqrt(etaD) * tr(rho*(cD+cD'))*dt + dWD;   
 
           #  PRE-FEEDBACK (Conditioning)
           # Using Rouchon, Ralf Eq. (7)
           # Kraus operator
           M = I - (1im * H + (cF'*cF)/2 + (cD'*cD)/2 + (cPhi'*cPhi)/2) * dt +
-              sqrt(etavalF/2) * (cF * dy1 - 1im * cF * dy2) + sqrt(etavalD) * (cD * dy3);
+              sqrt(etaF/2) * (cF * dy1 - 1im * cF * dy2) + sqrt(etaD) * (cD * dy3);
           # Derivative of the Kraus operator
           dM = -1im * dH * dt;
             
-          newRho = M * rho * M' + (1 - etavalF) * dt * (cF * rho * cF') + (1 - etavalD) * dt * (cD * rho * cD') + dt * (cPhi * rho * cPhi');
+          newRho = M * rho * M' + (1 - etaF) * dt * (cF * rho * cF') + (1 - etaD) * dt * (cD * rho * cD') + dt * (cPhi * rho * cPhi');
           tr1 = tr(newRho);
-          tau = (M * tau * M' + dM * rho * M' + M * rho * dM' + (1 - etavalF) * dt * (cF * tau * cF') +  (1 - etavalD) * dt * (cD * tau * cD') + dt * (cPhi * tau * cPhi')) / tr1;
+          tau = (M * tau * M' + dM * rho * M' + M * rho * dM' + (1 - etaF) * dt * (cF * tau * cF') +  (1 - etaD) * dt * (cD * tau * cD') + dt * (cPhi * tau * cPhi')) / tr1;
 
           rho = newRho / tr1;
           Drho = tau - tr(tau) * rho;
