@@ -3,51 +3,43 @@ using Printf
 using Plots 
 using LaTeXStrings
 
-function do_estimation(Ntrajectories::Integer, experimental_params)
+function do_estimation(Ntraj_array, experimental_params, simulate=false)
     estparams = Dict(
         :omegaMin  => 0., # minimum value of omega
         :omegaMax  => 5., # maximum value of omega
         :Nomega => 200)
-
+    
+    @info simulate
     params = merge(experimental_params, estparams)
-    
-    @info "Loading data..."
-    t = @elapsed experimental_data = load_data(experimental_params[:Filename])
-    @info "Elapsed time:" t
 
-    expData = sample_data(Ntrajectories, experimental_data)
-
-    expResult = likelihood_strong(expData; params...)
-    
-    filename = "estimation_Td_" * @sprintf("%.1f", params[:Td]) *
-                "_Tr_" * @sprintf("%2.1f", params[:Tr]) *
-                "_NTraj_$Ntrajectories.jld"
-
-    @save filename expResult params Ntrajectories
-    @info "File saved." filename 
-end
+    if !simulate
+        @info "Loading data..."
+        @time experimental_data = load_data(experimental_params[:Filename])
+    end
 
 
-function simulate_estimation(Ntrajectories::Integer, experimental_params)
-    estparams = Dict(
-        :omegaMin  => 0., # minimum value of omega
-        :omegaMax  => 5., # maximum value of omega
-        :Nomega => 200)
+    for Ntrajectories in Ntraj_array
+        @info "" Ntrajectories
 
-    params = merge(experimental_params, estparams)
-    
-    @info "Simulating data..."
-    t = @elapsed simData = parallel_fluo_continuous_measurement_het_simulation(Ntrajectories; params...) 
-    @info "Elapsed time:" t
+        if simulate
+            @info "Simulating data..."
+            @time expData = parallel_fluo_continuous_measurement_het_simulation(Ntrajectories; params...)
+        else
+            @info "Sampling data..."
+            expData = sample_data(Ntrajectories, experimental_data)
+        end
+        
+        @info "Estimating"
+        @time expResult = likelihood_strong(expData; params...)
+        
+        filename = "estimation_Td_" * @sprintf("%.1f", params[:Td]) *
+                    "_Tr_" * @sprintf("%2.1f", params[:Tr]) *
+                    "_NTraj_$Ntrajectories"
+        filename *= simulate ? "_sim.jld" : ".jld"
 
-    expResult = likelihood_strong(simData; params...)
-    
-    filename = "sim_estimation_Td_" * @sprintf("%.1f", params[:Td]) *
-                "_Tr_" * @sprintf("%2.1f", params[:Tr]) *
-                "_NTraj_$Ntrajectories.jld"
-
-    @save filename expResult params Ntrajectories
-    @info "File saved." filename 
+        @save filename expResult params Ntrajectories
+        @info "File saved." filename 
+    end
 end
 
 function plot_estimation(filename::String)
