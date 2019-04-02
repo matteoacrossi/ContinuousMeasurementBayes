@@ -6,12 +6,13 @@ using HDF5
 using JSON
 using StatsBase
 
+datapath = "data/"
 
 symb_dict(d::Dict) = Dict(Symbol(k) => v for (k, v) in d)
-experimental_params = symb_dict.(JSON.parse(open("params.json")))
+experimental_params = symb_dict.(JSON.parse(open(datapath * "params.json")))
 
 function get_fisher(;Filename, kwargs...)
-    fisherfile = h5open("fisher.h5", "r")
+    fisherfile = h5open(datapath * "fisher.h5", "r")
     symb_dict(read(fisherfile[Filename]))
 end
 
@@ -30,7 +31,7 @@ Returns a named tuple containing the three currents (rescaled and preprocessed)
 and the output of the strong measurement.
 """
 function load_data(filename)
-    file = h5open(filename)
+    file = h5open(datapath * filename)
     t = @elapsed OutStrong = read(file["z"])
     @info "Loaded strong output" t size(OutStrong)
     chunk_n = Int(floor(length(OutStrong) / CHUNK_SIZE))
