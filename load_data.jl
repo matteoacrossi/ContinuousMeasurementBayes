@@ -1,4 +1,5 @@
 using HDF5
+using StatsBase
 
 # The data is organized so that 10k trajectories are measured along x, then 10k along y, then 10k along z and so on
 CHUNK_SIZE = 10000
