@@ -1,4 +1,4 @@
-include("ContinuousMeasurementBayes/do_estimation.jl")
+include("do_estimation.jl")
 
 @show ARGS
 expid = Base.parse(Int64, ARGS[1])
