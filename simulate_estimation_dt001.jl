@@ -17,7 +17,7 @@ TD = 5.0
 Trabi = 2.
 Tphi = 17.9
 
-NTrajectories = 500
+Ntrajectories = 500
 
 # Parameter dictionary to be passed to the functions
 params = Dict( :Tfinal    => 20., # Final time
@@ -35,7 +35,7 @@ params = Dict( :Tfinal    => 20., # Final time
                :Nomega    => 300); # Resolution in omega for the Bayesian estimation
 
 println("Simulating trajectories...")
-@time simData = parallel_fluo_continuous_measurement_het_simulation(NTrajectories; params...) 
+@time simData = parallel_fluo_continuous_measurement_het_simulation(Ntrajectories; params...) 
 
 println("Estimating omega...")
 @time simRes = likelihood_strong(simData.dyHet1, simData.dyHet2, simData.dyDep, simData.OutStrong, 2000; params...);
@@ -60,7 +60,7 @@ let res = simRes
     p2 = plot(fisherUncResult.t, fisherUncResult.QFisherEff, label="QFI uncond", legend=:topleft)
     plot!(fisherResult.t, fisherResult.QFisherEff, label="Eff QFI (monitoring + strong m.)")
     plot!(fisherResult.t, fisherResult.FisherAvg, label="FI monitoring")
-    plot!(res.t, res.sigmaBayes .^ -2 ./ NTrajectories, label="Inv. Bayesian variance (renorm.)")
+    plot!(res.t, res.sigmaBayes .^ -2 ./ Ntrajectories, label="Inv. Bayesian variance (renorm.)")
     xlabel!("t")
 
     plot(p1, p2, layout = 2, size=(800,500))

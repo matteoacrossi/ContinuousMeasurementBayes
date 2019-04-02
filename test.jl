@@ -1,5 +1,5 @@
 
-NTrajectories = 100
+Ntrajectories = 100
 
 include("datasets.jl")
 include("fluo_cont_meas_sim.jl")
@@ -14,7 +14,7 @@ params = merge(experimental_params[1], estparams)
 
 @show params
 
-@time simData = parallel_fluo_continuous_measurement_het_simulation(NTrajectories; params...) 
+@time simData = parallel_fluo_continuous_measurement_het_simulation(Ntrajectories; params...) 
 @time simRes = likelihood_strong(simData; 
         params...);
         
