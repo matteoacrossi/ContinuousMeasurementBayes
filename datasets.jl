@@ -49,14 +49,13 @@ function load_data(filename)
     dyDep = prepend_unconditional(rescale_experimental_data.(dyDep[:,indices]))
     @info "Loaded and preprocessed w current" t size(dyDep)
 
-    return (dyHet1=dyHet1, dyHet2=dyHet2, dyDep=dyDep, OutStrong=prepend_unconditional(OutStrong))
+    return (dyHet1=dyHet1, dyHet2=dyHet2, dyDep=dyDep, OutStrong=OutStrong)
 end
  
 """
 Get a random sample of Ntraj from the data tuple dataTuple
 """
 function sample_data(Ntraj, dataTuple)
-    @info "Length" size(dataTuple.OutStrong, 1)
     idx = sample(1:size(dataTuple.OutStrong, 1), Ntraj; replace=false, ordered=true)
     dyHet1 = dataTuple.dyHet1[:,idx]
     dyHet2 = dataTuple.dyHet2[:,idx]
