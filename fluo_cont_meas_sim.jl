@@ -10,15 +10,15 @@ and returns the measured photocurrents for each measurement device and for each 
 It also returns the result of a strong final measurement along z, and the expected value of sigma_z. 
 """
 function parallel_fluo_continuous_measurement_het_simulation(Ntraj;
-        Tfinal = nothing, # Final time
-        dt = nothing, # duration of infinitesimal time
-        Gamma1 = nothing,   # Gamma fluoresence
-        GammaD = nothing,    # Gamma dephasing controllable
-        GammaPhi = nothing,  # Gamma dephasing not controllable
-        etaF = nothing, #efficiency fluoresence heterodyne
-        etaD = nothing, #efficiency dephasing homodyne
-        phi = nothing, #phase of strong measurement
-        omegaTrue = nothing, args...) # omegaz
+        Tfinal, # Final time
+        dt, # duration of infinitesimal time
+        Gamma1,   # Gamma fluoresence
+        GammaD,    # Gamma dephasing controllable
+        GammaPhi,  # Gamma dephasing not controllable
+        etaF, #efficiency fluoresence heterodyne
+        etaD, #efficiency dephasing homodyne
+        phi=0, #phase of strong measurement
+        omegaTrue, args...) # Real value for omega
 
   jtot = 1 / 2; #Total spin
   dimJ = 2; # Dimension of the corresponding Hilbert space

@@ -4,18 +4,18 @@ using StaticArrays
 PriorGaussian(omega, omegaMean, Sigma) = exp.( - ((omega .- omegaMean).^2)/(2*Sigma^2))
 
 function likelihood_strong(data;
-    Tfinal = nothing, # Final time
-    Gamma1 = nothing,   # Gamma fluoresence
-    GammaD = nothing,    # Gamma dephasing controllable
-    GammaPhi = nothing,  # Gamma dephasing not controllable
-    etaF = nothing, # efficiency fluoresence heterodyne
-    etaD = nothing, # efficiency dephasing homodyne
-    omegaMin = nothing, # minimum value of omega
-    omegaMax = nothing, # maximum value of omega
-    Nomega = nothing, # number of values of omega
-    omegaTrue = nothing, 
-    unconditional_timesteps = nothing,
-    threshold = nothing, kwargs...)  #true value of omega
+    Tfinal, # Final time
+    Gamma1,   # Gamma fluoresence
+    GammaD,    # Gamma dephasing controllable
+    GammaPhi,  # Gamma dephasing not controllable
+    etaF, # efficiency fluoresence heterodyne
+    etaD, # efficiency dephasing homodyne
+    omegaMin, # minimum value of omega
+    omegaMax, # maximum value of omega
+    Nomega, # number of values of omega
+    omegaTrue, 
+    unconditional_timesteps,
+    threshold, kwargs...)  #true value of omega
 
 dyHet1 = data.dyHet1
 dyHet2 = data.dyHet2
