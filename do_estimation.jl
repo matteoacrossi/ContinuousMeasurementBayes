@@ -3,6 +3,10 @@ using Printf
 using Plots 
 using LaTeXStrings
 
+include("datasets.jl")
+include("likelihood_strong.jl")
+include("fluo_cont_meas_sim.jl")
+resultspath = "results/"
 function do_estimation(Ntraj_array, experimental_params, simulate=false)
     estparams = Dict(
         :omegaMin  => 0., # minimum value of omega
@@ -37,8 +41,8 @@ function do_estimation(Ntraj_array, experimental_params, simulate=false)
                     "_NTraj_$Ntrajectories"
         filename *= simulate ? "_sim.jld" : ".jld"
 
-        @save filename expResult params Ntrajectories
-        @info "File saved." filename 
+        @save resultspath * filename expResult params Ntrajectories
+        @info "File saved." resultspath * filename 
     end
 end
 
