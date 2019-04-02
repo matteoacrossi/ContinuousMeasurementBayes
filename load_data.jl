@@ -7,23 +7,28 @@ UNCONDITIONAL_STEPS = 3
 """
 Load the data corresponding to the final z measurements.
 
-Returns a named tuple containing the three currents (rescaled)
+Returns a named tuple containing the three currents (rescaled and preprocessed)
 and the output of the strong measurement.
 """
 function load_z_data(filename)
+    to = 
     file = h5open(filename)
-    OutStrong = read(file["z"])
+    t = @elapsed OutStrong = read(file["z"])
+    @info "Loaded strong output" t size(OutStrong)
     chunk_n = Int(floor(length(OutStrong) / CHUNK_SIZE))
     indices = vcat([1 + (-1 + 3 * i ) * CHUNK_SIZE : 3* i * CHUNK_SIZE for i in 1:chunk_n]...)
 
-    dyHet1 = read(file["u"])
+    t = @elapsed dyHet1 = read(file["u"])
     dyHet1 = prepend_unconditional(rescale_experimental_data.(dyHet1[:,indices]))
+    @info "Loaded and preprocessed u current" t size(dyHet1)
 
-    dyHet2 = read(file["v"])
+    t = @elapsed dyHet2 = read(file["v"])
     dyHet2 = prepend_unconditional(rescale_experimental_data.(dyHet2[:,indices]))
+    @info "Loaded and preprocessed v current" t size(dyHet2)
 
-    dyDep =  read(file["w"])
+    t = @elapsed dyDep =  read(file["w"])
     dyDep = prepend_unconditional(rescale_experimental_data.(dyDep[:,indices]))
+    @info "Loaded and preprocessed w current" t size(dyDep)
 
     return (dyHet1=dyHet1, dyHet2=dyHet2, dyDep=dyDep, OutStrong=prepend_unconditional(OutStrong))
 end
