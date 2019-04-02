@@ -1,5 +1,7 @@
 using ZChop # For chopping small imaginary parts in ρ
 using SharedArrays
+using StaticArrays
+using LinearAlgebra
 
 """
     QFI(ρ, dρ [, abstol])
