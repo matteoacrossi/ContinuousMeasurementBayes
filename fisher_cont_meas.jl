@@ -2,6 +2,7 @@ using ZChop # For chopping small imaginary parts in ρ
 using SharedArrays
 using StaticArrays
 using LinearAlgebra
+using Distributed
 
 """
     QFI(ρ, dρ [, abstol])
@@ -72,11 +73,11 @@ function parallel_fluo_continuous_measurement_het_classic_initial0(Ntraj;
   #
   t = (1:Ntime)*dt;
 
-  FisherTraj = Array{Float64}(undef, Ntraj,Ntime)
+  FisherTraj = SharedArray{Float64}((Ntraj, Ntime))
   #  
-  QFisherTraj = Array{Float64}(undef, Ntraj,Ntime)
+  QFisherTraj = SharedArray{Float64}((Ntraj,Ntime))
   #
-  FisherMTraj = Array{Float64}(undef, Ntraj,Ntime)
+  FisherMTraj = SharedArray{Float64}((Ntraj,Ntime))
   #
     
   FisherAvg = Array{Float64}(undef, Ntime)
@@ -88,7 +89,7 @@ function parallel_fluo_continuous_measurement_het_classic_initial0(Ntraj;
   FisherMAvg = Array{Float64}(undef, Ntime)
   FisherMEff = Array{Float64}(undef, Ntime)
     
-  for ktraj = 1:Ntraj
+  @sync @distributed for ktraj = 1:Ntraj
       rho = RhoIn
 
       # Derivative of rho wrt the parameter

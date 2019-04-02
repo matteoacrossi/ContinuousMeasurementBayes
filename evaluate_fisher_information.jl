@@ -1,12 +1,13 @@
 using HDF5
+using Distributed
 
 include("datasets.jl")
 
-include("fisher_cont_meas.jl")
+@everywhere include("fisher_cont_meas.jl")
    
-Ntime = 1000
-QFI_unc_trajectories = 1000
-FI_trajectories = 50000
+Ntime = 10#1000
+QFI_unc_trajectories = 10#1000
+FI_trajectories = 10# 50000
 
 h5open("fisher.h5", "w") do file
     for params in experimental_params
