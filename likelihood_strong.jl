@@ -80,7 +80,7 @@ lklhood = ones(Nomega)/Nomega
 probStrong = Array{Float64}(undef, Nomega)
 lklhoodStrong = ones(Nomega)/Nomega
 
-probBayesTraj = Array{Float64}(undef, Nomega, Ntraj, Ntime)
+probBayesTraj = Array{Float64}(undef, Nomega, Ntime)
 lklhoodTraj = Array{Float64}(undef, Nomega)
 omegaEst = Array{Float64}(undef, Ntime)
 sigmaBayes = Array{Float64}(undef, Ntime)
@@ -167,13 +167,13 @@ for ktraj = 1:Ntraj
                 # probabilità a quel tempo calcolata per le traiettorie precedenti
             end
         else
-            lklhoodTraj = lklhood .* probBayesTraj[:,ktraj,jt-1]
+            lklhoodTraj = lklhood .* probBayesTraj[:,jt-1]
             if ktraj == 1
                 lklhood = lklhoodTraj
                 # se è la prima traiettoria devo solo moltiplicare la likelihood per 
                 # la probabilità fino a quel punto della dinamica
             else 
-                lklhood  = lklhood .* probBayesTraj[:,ktraj,jt-1].*probBayes[:,jt]
+                lklhood  = lklhood .* probBayesTraj[:,jt-1].*probBayes[:,jt]
                 # moltiplico likelihood per probabilità traiettoria fino al tempo antecedente 
                 # e per probabilità a quel tempo considerate tutte le traiettorie 
             end
@@ -186,14 +186,14 @@ for ktraj = 1:Ntraj
         # Bayesian probability considering all the trajectories
         probBayes[:, jt] = lklhood / norm   
         # Bayesian probability for the single trajectories
-        probBayesTraj[:, ktraj, jt] = lklhoodTraj / normTraj  
+        probBayesTraj[:,  jt] = lklhoodTraj / normTraj  
         
         # We update the Bayesian probability for the final strong measurement
         if jt == Ntime
             if ktraj == 1
-                lklhoodStrong = lklhoodStrong .* probBayesTraj[:,ktraj,Ntime]
+                lklhoodStrong = lklhoodStrong .* probBayesTraj[:, Ntime]
             else
-                lklhoodStrong = lklhoodStrong .* probBayesTraj[:,ktraj,Ntime] .* probStrong
+                lklhoodStrong = lklhoodStrong .* probBayesTraj[:, Ntime] .* probStrong
             end
             normStrong = sum(lklhoodStrong)
             probStrong = lklhoodStrong/normStrong
@@ -219,7 +219,7 @@ return (t=t,
         omegas=omegas, 
         AvgZcond=AvgZcond, 
         probBayes=probBayes, 
-        probBayesTraj=probBayesTraj, 
+        #probBayesTraj=probBayesTraj, 
         omegaEst=omegaEst, 
         omegaMaxLik=omegaMaxLik,
         sigmaBayes=sigmaBayes,
