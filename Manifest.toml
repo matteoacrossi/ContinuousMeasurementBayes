@@ -90,6 +90,12 @@ git-tree-sha1 = "b974e164358fea753ef853ce7bad97afec15bb80"
 uuid = "d38c429a-6771-53c6-b99e-75d170b6e991"
 version = "0.5.1"
 
+[[Crayons]]
+deps = ["Test"]
+git-tree-sha1 = "f621b8ef51fd2004c7cf157ea47f027fdeac5523"
+uuid = "a8cc5b0e-0ffa-5ad4-8c14-923d3ee1735f"
+version = "4.0.0"
+
 [[DataFrames]]
 deps = ["CategoricalArrays", "CodecZlib", "Compat", "DataStreams", "Dates", "InteractiveUtils", "IteratorInterfaceExtensions", "LinearAlgebra", "Missings", "Printf", "Random", "Reexport", "SortingAlgorithms", "Statistics", "StatsBase", "TableTraits", "Tables", "Test", "TranscodingStreams", "Unicode", "WeakRefStrings"]
 git-tree-sha1 = "9cfed75401d25d281076eb5d82de148ac2933f9e"
@@ -396,6 +402,12 @@ version = "0.1.18"
 [[Test]]
 deps = ["Distributed", "InteractiveUtils", "Logging", "Random"]
 uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[[TimerOutputs]]
+deps = ["Crayons", "Printf", "Test", "Unicode"]
+git-tree-sha1 = "b80671c06f8f8bae08c55d67b5ce292c5ae2660c"
+uuid = "a759f4b9-e2f1-59dc-863e-4aeb61b1ea8f"
+version = "0.5.0"
 
 [[TranscodingStreams]]
 deps = ["Pkg", "Random", "Test"]
