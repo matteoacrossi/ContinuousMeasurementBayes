@@ -1,3 +1,13 @@
+"""
+This file evaluates the various QFIs for the avaliable parameter sets, and stores it into an HDF5 file.
+
+It can be run on qtech using the batch.sh file. 
+Parallel evaluation is available (specify number of cores)
+
+    sbatch -c 10 batch.sh evaluate_fisher_information.jl
+
+"""
+
 using HDF5
 using Distributed
 
