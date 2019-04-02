@@ -56,7 +56,8 @@ end
 Get a random sample of Ntraj from the data tuple dataTuple
 """
 function sample_data(Ntraj, dataTuple)
-    idx = sample(1:length(dataTuple.OutStrong), Ntraj; replace=false, ordered=true)
+    @info "Length" size(dataTuple.OutStrong, 1)
+    idx = sample(1:size(dataTuple.OutStrong, 1), Ntraj; replace=false, ordered=true)
     dyHet1 = dataTuple.dyHet1[:,idx]
     dyHet2 = dataTuple.dyHet2[:,idx]
     dyDep  = dataTuple.dyDep[:,idx]
