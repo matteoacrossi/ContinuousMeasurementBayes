@@ -1,5 +1,6 @@
 using LinearAlgebra
 using StaticArrays
+using ZChop
 
 PriorGaussian(omega, omegaMean, Sigma) = exp.( - ((omega .- omegaMean).^2)/(2*Sigma^2))
 
@@ -198,14 +199,14 @@ for ktraj = 1:Ntraj
             normStrong = sum(lklhoodStrong)
             probStrong = lklhoodStrong/normStrong
             omegaEstStrong[ktraj] = sum(probStrong .* omegas)
-            sigmaStrong[ktraj] = sqrt(sum(probStrong .* (omegas .^ 2)) - omegaEstStrong[ktraj]^2)
+            sigmaStrong[ktraj] = sqrt(zchop(sum(probStrong .* (omegas .^ 2)) - omegaEstStrong[ktraj]^2))
             indMStrong = argmax(probStrong)
             omegaMaxLikStrong[ktraj] = omegas[indMStrong]
         end
         
         if ktraj == Ntraj        
             omegaEst[jt] = sum(probBayes[:,jt].*omegas)
-            sigmaBayes[jt] = sqrt(sum(probBayes[:,jt].*(omegas.^2)) - omegaEst[jt]^2)
+            sigmaBayes[jt] = sqrt(zchop(sum(probBayes[:,jt].*(omegas.^2)) - omegaEst[jt]^2))
                 
             indM = argmax(probBayes[:,jt])
             omegaMaxLik[jt]=omegas[indM]
