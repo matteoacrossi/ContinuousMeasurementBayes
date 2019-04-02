@@ -10,15 +10,15 @@ and returns the measured photocurrents for each measurement device and for each 
 It also returns the result of a strong final measurement along z, and the expected value of sigma_z. 
 """
 function parallel_fluo_continuous_measurement_het_simulation(Ntraj;
-        Tfinal = nothing, # Final time
-        dt = nothing, # duration of infinitesimal time
-        Gamma1 = nothing,   # Gamma fluoresence
-        GammaD = nothing,    # Gamma dephasing controllable
-        GammaPhi = nothing,  # Gamma dephasing not controllable
-        etavalF = nothing, #efficiency fluoresence heterodyne
-        etavalD = nothing, #efficiency dephasing homodyne
-        phi = nothing, #phase of strong measurement
-        omegaTrue = nothing, args...) # omegaz
+        Tfinal, # Final time
+        dt, # duration of infinitesimal time
+        Gamma1,   # Gamma fluoresence
+        GammaD,    # Gamma dephasing controllable
+        GammaPhi,  # Gamma dephasing not controllable
+        etaF, #efficiency fluoresence heterodyne
+        etaD, #efficiency dephasing homodyne
+        phi=0, #phase of strong measurement
+        omegaTrue, args...) # Real value for omega
 
   jtot = 1 / 2; #Total spin
   dimJ = 2; # Dimension of the corresponding Hilbert space
@@ -102,13 +102,13 @@ function parallel_fluo_continuous_measurement_het_simulation(Ntraj;
           # First three timesteps are unconditional
           if jt > 3 
               # Signal variation (Rouchon, Sec. 4.1)
-              dy1[jt] = sqrt(etavalF/2) * real(tr(rho*(cF+cF')))*dt + dWF1;
-              dy2[jt] = sqrt(etavalF/2) * real(tr(rho*(-1im*(cF-cF'))))*dt + dWF2;
-              dy3[jt] = sqrt(etavalD) * real(tr(rho*(cD+cD')))*dt + dWD;   
-              M = M0 + sqrt(etavalF/2) * (cF * dy1[jt] - 1im * cF * dy2[jt]) + sqrt(etavalD) * (cD * dy3[jt]);
+              dy1[jt] = sqrt(etaF/2) * real(tr(rho*(cF+cF')))*dt + dWF1;
+              dy2[jt] = sqrt(etaF/2) * real(tr(rho*(-1im*(cF-cF'))))*dt + dWF2;
+              dy3[jt] = sqrt(etaD) * real(tr(rho*(cD+cD')))*dt + dWD;   
+              M = M0 + sqrt(etaF/2) * (cF * dy1[jt] - 1im * cF * dy2[jt]) + sqrt(etaD) * (cD * dy3[jt]);
             end
             
-          newRho = M * rho * M' + (1 - etavalF) * dt * (cF * rho * cF') + (1 - etavalD) * dt * (cD * rho * cD') + dt * (cPhi * rho * cPhi');
+          newRho = M * rho * M' + (1 - etaF) * dt * (cF * rho * cF') + (1 - etaD) * dt * (cD * rho * cD') + dt * (cPhi * rho * cPhi');
           tr1 = tr(newRho);
 
           rho = newRho / tr1;
@@ -133,5 +133,14 @@ function parallel_fluo_continuous_measurement_het_simulation(Ntraj;
       OutStrong[ktraj,:]=outS;  
   end
 
-  return (t=t, Ntime=Ntime, dyHet1=dyHet1', dyHet2=dyHet2', dyDep=dyDep', OutStrong=OutStrong', AvgZcondTrue=AvgZcondTrue)
+  # Collect is required, otherwise we are 
+  # returning SharedArrays; instead we want to return 
+  # standard arrays
+  return (t=t, 
+      Ntime=Ntime, 
+      dyHet1=collect(dyHet1'), 
+      dyHet2=collect(dyHet2'), 
+      dyDep=collect(dyDep'), 
+      OutStrong=collect(OutStrong'), 
+      AvgZcondTrue=collect(AvgZcondTrue))
 end

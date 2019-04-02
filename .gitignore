@@ -1,2 +1,5 @@
 .ipynb_checkpoints
 *.h5
+Bayesian_estimation.ipynb
+VarianceCheck.ipynb
+StrongMeasChecks.ipynb

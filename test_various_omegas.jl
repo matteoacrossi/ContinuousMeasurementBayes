@@ -34,8 +34,8 @@ using Random
                     :Gamma1    => 1. / T1,   # Gamma fluoresence
                     :GammaD    => 1. / TD,  # Gamma dephasing controllable
                     :GammaPhi  => 1. / Tphi,  # Gamma dephasing not controllable
-                    :etavalF   => 0.14, # efficiency fluoresence heterodyne
-                    :etavalD   => 0.34, # efficiency dephasing homodyne
+                    :etaF   => 0.14, # efficiency fluoresence heterodyne
+                    :etaD   => 0.34, # efficiency dephasing homodyne
                     :omegaTrue => 2 * pi / Trabi, # True value of omega
                     :omegaMin  => 2., # minimum value of omega
                     :omegaMax  => 4., # maximum value of omega
@@ -53,7 +53,7 @@ end
     params[:omegaMin] = max(0, params[:omegaTrue] - 1)
     params[:omegaMax] = params[:omegaTrue] + 1
     simData = parallel_fluo_continuous_measurement_het_simulation(Ntrajectories; params...) 
-    @time simRes = Likelihood_strong(simData.dyHet1, simData.dyHet2, simData.dyDep, simData.OutStrong, 200; params...);
+    @time simRes = likelihood_strong(simData.dyHet1, simData.dyHet2, simData.dyDep, simData.OutStrong, 200; params...);
     return simRes.omegaEst[end], simRes.sigmaBayes[end]
 end
 

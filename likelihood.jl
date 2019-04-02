@@ -7,11 +7,11 @@ function Likelihood(dyHet1, dyHet2, dyDep, Ntime;
     Tfinal = nothing, # Final time
     Gamma1 = nothing,   # Gamma fluoresence
     GammaD = nothing,    # Gamma dephasing controllable
-    GammaPhi =nothing,  # Gamma dephasing not controllable
-    etavalF=nothing, #efficiency fluoresence heterodyne
-    etavalD=nothing, #efficiency dephasing homodyne
+    GammaPhi = nothing,  # Gamma dephasing not controllable
+    etaF = nothing, #efficiency fluoresence heterodyne
+    etaD = nothing, #efficiency dephasing homodyne
     omegaMin = nothing, #minimum value of omega
-    omegaMax=nothing, #maximum value of omega
+    omegaMax = nothing, #maximum value of omega
     Nomega = nothing, # number of values of omega
     omegaTrue = nothing,
     unconditional_timesteps = nothing, kwargs...)  #true value of omega
@@ -20,18 +20,18 @@ function Likelihood(dyHet1, dyHet2, dyDep, Ntime;
 
 dimJ = 2; # Dimension of the corresponding Hilbert space
 
-dt = Tfinal / Ntime;
+dt = Tfinal / Ntime
 
 Ntraj = size(dyHet1,2)
     
-domega = (omegaMax - omegaMin) / Nomega;
+domega = (omegaMax - omegaMin) / Nomega
 
-omegay = Array{Float64}(undef, Nomega+1);  
-priorG = Array{Float64}(undef, Nomega+1); 
+omegay = Array{Float64}(undef, Nomega + 1)  
+priorG = Array{Float64}(undef, Nomega + 1)
 
-for jomega=1:(Nomega+1)
-    omegay[jomega] = real(omegaMin + (jomega-1)*domega);
-    priorG[jomega] = real(PriorGaussian(omegay[jomega],0.,1. *pi));
+for jomega = 1 : (Nomega + 1)
+    omegay[jomega] = real(omegaMin + (jomega - 1) * domega)
+    priorG[jomega] = real(PriorGaussian(omegay[jomega], 0., 1. * pi));
 end
 
 sx::Array{ComplexF64} = [0 1 ; 1 0] 
@@ -87,10 +87,10 @@ for ktraj = 1:Ntraj
         if jt <= unconditional_timesteps
             M1 = M0;
         else    
-            M1 = M0 + sqrt(etavalF/2) * cF * (dyHet1[end - Ntime + jt, ktraj] - 1im * dyHet2[end - Ntime + jt, ktraj]) + 
-                    sqrt(etavalD) * (cD * dyDep[end - Ntime + jt, ktraj]);
+            M1 = M0 + sqrt(etaF/2) * cF * (dyHet1[end - Ntime + jt, ktraj] - 1im * dyHet2[end - Ntime + jt, ktraj]) + 
+                    sqrt(etaD) * (cD * dyDep[end - Ntime + jt, ktraj]);
         end
-            
+        
         for jomega = 1:(Nomega+1)
         #in questo ciclo mi calcolo le likelihood della misura al tempo jt per ciascun valore di omega
             
@@ -105,7 +105,7 @@ for ktraj = 1:Ntraj
                 newRho += dt * (cD * rhotmp * cD')
                 newRho += dt * (cPhi * rhotmp * cPhi');
             else        
-                newRho += (1 - etavalF) * dt * (cF * rhotmp * cF') +  (1 - etavalD) * dt * (cD * rhotmp * cD') +  dt * (cPhi * rhotmp * cPhi');
+                newRho += (1 - etaF) * dt * (cF * rhotmp * cF') +  (1 - etaD) * dt * (cD * rhotmp * cD') +  dt * (cPhi * rhotmp * cPhi');
             end
             
             lklhood[jomega] = real(tr(newRho));
@@ -113,7 +113,7 @@ for ktraj = 1:Ntraj
             rho[:,:,jomega] = newRho / lklhood[jomega];
 
             lklhood[jomega] = lklhood[jomega] - (omegay[jomega] * dt / 2)^2;
-                            
+
             if abs(omegay[jomega]-omegaTrue) < domega    
                 AvgZcond[ktraj,jt] = real(tr(rho[:,:,jomega]*sz));
             end
@@ -135,25 +135,25 @@ for ktraj = 1:Ntraj
                 # se è la prima traiettoria devo solo moltiplicare la likelihood per 
                 # la probabilità fino a quel punto della dinamica
             else 
-                lklhood  = lklhood .* probBayesTraj[:,ktraj,jt-1].*probBayes[:,jt];
+                lklhood  = lklhood .* probBayesTraj[:,ktraj,jt-1].*probBayes[:,jt]
                 # moltiplico likelihood per probabilità traiettoria fino al tempo antecedente 
                 # e per probabilità a quel tempo considerate tutte le traiettorie 
             end
         end
                                     
-        norm = sum(lklhood);
-        normTraj = sum(lklhoodTraj);
+        norm = sum(lklhood)
+        normTraj = sum(lklhoodTraj)
             
-        probBayes[:,jt] = lklhood/norm;   # probabilità Bayesiana considerando tutte le traiettorie
-        probBayesTraj[:,ktraj,jt]=lklhoodTraj /normTraj;  #probabilità Bayesiana singola traiettoria
+        probBayes[:,jt] = lklhood/norm   # probabilità Bayesiana considerando tutte le traiettorie
+        probBayesTraj[:,ktraj,jt]=lklhoodTraj /normTraj  #probabilità Bayesiana singola traiettoria
         
         
-        if ktraj == Ntraj        
-            omegaEst[jt] = sum(probBayes[:,jt].*omegay);
-            sigmaBayes[jt] = sqrt(sum(probBayes[:,jt].*(omegay.^2)) - omegaEst[jt]^2);
-                
-            indM = argmax(probBayes[:,jt]);   
-            omegaMaxLik[jt]=omegay[indM];
+        if ktraj == Ntraj
+            omegaEst[jt] = sum(probBayes[:,jt].*omegay)
+            sigmaBayes[jt] = sqrt(sum(probBayes[:,jt].*(omegay.^2)) - omegaEst[jt]^2)
+
+            indM = argmax(probBayes[:,jt])
+            omegaMaxLik[jt]=omegay[indM]
         end
 
     end #fine ciclo sul tempo
