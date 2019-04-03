@@ -8,10 +8,11 @@ include("likelihood_strong.jl")
 include("fluo_cont_meas_sim.jl")
 resultspath = "results/"
 function do_estimation(Ntraj_array, experimental_params, simulate=false)
+
     estparams = Dict(
-        :omegaMin  => 0., # minimum value of omega
-        :omegaMax  => 5., # maximum value of omega
-        :Nomega => 200)
+        :omegaMin  => max(0., experimental_params[:omegaTrue] - 1) # minimum value of omega
+        :omegaMax  => experimental_params[:omegaTrue] + 1, # maximum value of omega
+        :Nomega => 400)
     
     @info simulate
     params = merge(experimental_params, estparams)
