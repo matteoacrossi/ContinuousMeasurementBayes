@@ -10,7 +10,7 @@ resultspath = "results/"
 function do_estimation(Ntraj_array, experimental_params, simulate=false)
 
     estparams = Dict(
-        :omegaMin  => max(0., experimental_params[:omegaTrue] - 1) # minimum value of omega
+        :omegaMin  => max(0., experimental_params[:omegaTrue] - 1), # minimum value of omega
         :omegaMax  => experimental_params[:omegaTrue] + 1, # maximum value of omega
         :Nomega => 400)
     
