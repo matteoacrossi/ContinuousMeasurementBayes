@@ -15,7 +15,7 @@ include("datasets.jl")
 
 @everywhere include("fisher_cont_meas.jl")
    
-Ntime = 1000
+Ntime = 5000
 QFI_unc_trajectories = 1000
 FI_trajectories = 50000
 
