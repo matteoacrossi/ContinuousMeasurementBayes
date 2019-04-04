@@ -26,11 +26,12 @@ using Random
     Tphi = 17.9
     
     Ntrajectories = 500
-    nomegas = 200
-        
+    nomegas = 5
+    dt = 0.1
+
     # Parameter dictionary to be passed to the functions
     params = Dict( :Tfinal    => 20., # Final time
-                    :dt        => 0.1, # duration of infinitesimal time
+                    :dt        => dt, # duration of infinitesimal time
                     :Gamma1    => 1. / T1,   # Gamma fluoresence
                     :GammaD    => 1. / TD,  # Gamma dephasing controllable
                     :GammaPhi  => 1. / Tphi,  # Gamma dephasing not controllable
@@ -53,24 +54,25 @@ end
     params[:omegaMin] = max(0, params[:omegaTrue] - 1)
     params[:omegaMax] = params[:omegaTrue] + 1
     simData = parallel_fluo_continuous_measurement_het_simulation(Ntrajectories; params...) 
-    @time simRes = likelihood_strong(simData.dyHet1, simData.dyHet2, simData.dyDep, simData.OutStrong, 200; params...);
+    @time simRes = likelihood_strong(simData; params...);
     return simRes.omegaEst[end], simRes.sigmaBayes[end]
 end
 
 # Basic linear regression
 linreg(x, y) = reverse([x ones(length(x))] \ y)
 
-omegas = rand(0.25:0.00001:5, nomegas)
+omegas = rand(0.1:0.00001:5, nomegas)
 @time res = pmap(o -> vsomega(o, Ntrajectories, params), omegas, batch_size=nprocs()-1)
 
 println("Making plot...")
 processed = collect.(collect(zip(res...)))
 coeff = linreg(omegas, processed[1] - omegas)
-scatter(omegas, (processed[1] .- omegas), label="Sim")
+errors = processed[2]
+scatter(omegas, (processed[1] .- omegas), yerror=errors, label="Sim")
 plot!([0,5],[0,0], style=:dash, color=:black, label=L"\Omega_{true}")
 plot!([0,5], coeff[2] .* [0,5] .+ coeff[1], label= (@sprintf "Fit: %.3f x + %.3f" coeff[2] coeff[1]))
 xlabel!(L"\Omega_{true}")
 ylabel!(L"\Omega_{est}- \Omega_{true}")
-title!(@sprintf "%d trajectories" Ntrajectories)
+title!(@sprintf "%d trajectories, dt %.2f" Ntrajectories dt)
 
 savefig("Estimation_vs_omega.png")
