@@ -7,7 +7,7 @@ include("datasets.jl")
 include("likelihood_strong.jl")
 include("fluo_cont_meas_sim.jl")
 resultspath = "results/"
-function do_estimation(Ntraj_array, experimental_params, simulate=false)
+function do_estimation(Ntraj_array, experimental_params, simulate=false; filter=true)
 
     estparams = Dict(
         :omegaMin  => max(0., experimental_params[:omegaTrue] - 1), # minimum value of omega
@@ -19,7 +19,12 @@ function do_estimation(Ntraj_array, experimental_params, simulate=false)
 
     if !simulate
         @info "Loading data..."
-        @time experimental_data = load_data(experimental_params[:Filename])
+        if filter
+            @info "Using filter for strong measurement"
+            @time experimental_data = load_data(experimental_params[:Filename], peakfilter)
+        else
+            @time experimental_data = load_data(experimental_params[:Filename])
+        end
     end
 
 
