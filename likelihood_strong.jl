@@ -62,7 +62,6 @@ cF = SMatrix{2,2}(sqrt(Gamma1) * sm)
 cD = SMatrix{2,2}(sqrt(GammaD/2) * sz)
 cPhi = SMatrix{2,2}(sqrt(GammaPhi/2) * sz)
 
-
 PiPlus=SMatrix{2,2}([1 0 ; 0 0] .+ 0.0im)
 
 # initial state of the system
