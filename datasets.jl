@@ -41,7 +41,7 @@ and the output of the strong measurement.
 function load_data(filename, strongfilter=nothing)
     file = h5open(datapath * filename)
     t = @elapsed OutStrong = read(file["z"])
-    OutStrong = dropdims(OutStrong, 2) # Remove last singleton dimension
+    OutStrong = dropdims(OutStrong; dims=2) # Remove last singleton dimension
     @info "Loaded strong output" t size(OutStrong)
     chunk_n = Int(floor(length(OutStrong) / CHUNK_SIZE))
     indices = vcat([1 + (-1 + 3 * i ) * CHUNK_SIZE : 3* i * CHUNK_SIZE for i in 1:chunk_n]...)
