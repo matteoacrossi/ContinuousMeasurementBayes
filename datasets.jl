@@ -24,18 +24,34 @@ end
 CHUNK_SIZE = 10000
 UNCONDITIONAL_STEPS = 3
 
+peak1_low=-1.8
+peak1_high=-.1
+peak2_low=.9
+peak2_high=2.6
+
+peakfilter(x) = (x > peak1_low) & (x < peak1_high) | (x > peak2_low) & (x < peak2_high)
+
+
 """
 Load the data corresponding to the final z measurements.
 
 Returns a named tuple containing the three currents (rescaled and preprocessed)
 and the output of the strong measurement.
 """
-function load_data(filename)
+function load_data(filename, strongfilter=nothing)
     file = h5open(datapath * filename)
     t = @elapsed OutStrong = read(file["z"])
+    OutStrong = dropdims(OutStrong, 2) # Remove last singleton dimension
     @info "Loaded strong output" t size(OutStrong)
     chunk_n = Int(floor(length(OutStrong) / CHUNK_SIZE))
     indices = vcat([1 + (-1 + 3 * i ) * CHUNK_SIZE : 3* i * CHUNK_SIZE for i in 1:chunk_n]...)
+
+    # If a filter function is passed, filter the trajectories
+    if strongfilter != nothing
+        filteredidx = strongfilter.(OutStrong)
+        OutStrong = OutStrong[filteredidx]
+        indices = indices[filteredidx]
+    end
 
     t = @elapsed dyHet1 = read(file["u"])
     dyHet1 = prepend_unconditional(rescale_experimental_data.(dyHet1[:,indices]))
