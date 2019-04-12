@@ -24,12 +24,15 @@ end
 CHUNK_SIZE = 10000
 UNCONDITIONAL_STEPS = 3
 
-peak1_low=-1.8
-peak1_high=-.1
-peak2_low=.9
-peak2_high=2.6
+peak1=-1.0
+peak1_hwidth=.5
+peak2=1.7
+peak2_hwidth=.5
 
-peakfilter(x) = (x > peak1_low) & (x < peak1_high) | (x > peak2_low) & (x < peak2_high)
+x = -2.5:0.01:5
+#datafilter = float(((x .> peak1_low) .& (x.< peak1_high)) .| ((x .> peak2_low) .& (x .< peak2_high)));
+
+peakfilter(x) = (abs(x - peak1) < peak1_hwidth) | (abs(x - peak2) < peak2_hwidth)
 
 
 """
