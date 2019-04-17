@@ -33,7 +33,7 @@ h5open("data/fisher_est_omega.h5", "w") do file
         params = merge(params, estparams)
 
         @info "Loading data"
-        @time experimental_data = load_data(experimental_params[:Filename], peakfilter)
+        @time experimental_data = load_data(params[:Filename], peakfilter)
         expData = sample_data(Ntrajectories, experimental_data)
 
         @info "Estimating"
