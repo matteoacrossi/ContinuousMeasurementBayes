@@ -12,7 +12,6 @@ using HDF5
 using Distributed
 
 include("datasets.jl")
-include("do_estimation.jl")
 
 @everywhere include("fisher_cont_meas.jl")
    
@@ -26,8 +25,8 @@ h5open("data/fisher_est_omega.h5", "w") do file
     for params in experimental_params
 
         estparams = Dict(
-            :omegaMin  => max(0., experimental_params[:omegaTrue] - 1), # minimum value of omega
-            :omegaMax  => experimental_params[:omegaTrue] + 1, # maximum value of omega
+            :omegaMin  => max(0., params[:omegaTrue] - 1), # minimum value of omega
+            :omegaMax  => params[:omegaTrue] + 1, # maximum value of omega
             :Nomega => 400)
 
         @info simulate
@@ -43,7 +42,7 @@ h5open("data/fisher_est_omega.h5", "w") do file
         @info "Initial omegaTrue was $(params[:omegaTrue])"
         params[:omegaTrue] = expResult.omegaEst[end]
         @info params[:omegaTrue]
-        
+
         g = g_create(file, params[:Filename])
         # For the unconditional dynamics, we set zero efficiency
         params_unconditional = copy(params)
