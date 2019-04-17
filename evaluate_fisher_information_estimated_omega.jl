@@ -17,9 +17,9 @@ include("likelihood_strong.jl")
    
 Ntrajectories = 10000
 
-Ntime = 5000
-QFI_unc_trajectories = 1000
-FI_trajectories = 50000
+Ntime = 500
+QFI_unc_trajectories = 100
+FI_trajectories = 500
 
 h5open("data/fisher_est_omega.h5", "w") do file
     for params in experimental_params
