@@ -12,7 +12,7 @@ using HDF5
 using Distributed
 
 include("datasets.jl")
-
+include("likelihood_strong.jl")
 @everywhere include("fisher_cont_meas.jl")
    
 Ntrajectories = 10000
@@ -29,7 +29,6 @@ h5open("data/fisher_est_omega.h5", "w") do file
             :omegaMax  => params[:omegaTrue] + 1, # maximum value of omega
             :Nomega => 400)
 
-        @info simulate
         params = merge(params, estparams)
 
         @info "Loading data"
