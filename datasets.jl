@@ -12,7 +12,7 @@ symb_dict(d::Dict) = Dict(Symbol(k) => v for (k, v) in d)
 experimental_params = symb_dict.(JSON.parse(open(datapath * "params.json")))
 
 function get_fisher(;Filename, kwargs...)
-    fisherfile = h5open(datapath * "fisher.h5", "r")
+    fisherfile = h5open(datapath * "fisher_est_omega.h5", "r")
     symb_dict(read(fisherfile[Filename]))
 end
 
