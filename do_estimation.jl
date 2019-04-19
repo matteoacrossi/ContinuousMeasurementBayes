@@ -12,7 +12,7 @@ function do_estimation(Ntraj_array, experimental_params, simulate=false; filter=
     estparams = Dict(
         :omegaMin  => max(0., experimental_params[:omegaTrue] - 1), # minimum value of omega
         :omegaMax  => experimental_params[:omegaTrue] + 1, # maximum value of omega
-        :Nomega => 400)
+        :Nomega => 750)
     
     @info simulate
     params = merge(experimental_params, estparams)
